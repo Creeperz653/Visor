@@ -1,5 +1,6 @@
 package org.vmstudio.visor.mixin.common.world.entity.projectiles;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.server.player.VRServerPlayer;
 import net.minecraft.server.level.ServerPlayer;
@@ -8,7 +9,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,17 +31,12 @@ public abstract class AbstractArrowMixin extends Entity {
     // 1.21 the firing weapon as well
     //? if >=1.21 {
     @Inject(at = @At("RETURN"), method = "<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)V")
-    public void visor$setupPos(EntityType<? extends AbstractArrow> entityType, LivingEntity shooter, Level level, ItemStack pickupItem, ItemStack weapon, CallbackInfo ci
-    ) {
     //?} elif >=1.20.3 {
     /*@Inject(at = @At("RETURN"), method = "<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;)V")
-    public void visor$setupPos(EntityType<? extends AbstractArrow> entityType, LivingEntity shooter, Level level, ItemStack pickupItem, CallbackInfo ci
-    ) {
     *///?} else {
     /*@Inject(at = @At("RETURN"), method = "<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;)V")
-    public void visor$setupPos(EntityType<? extends AbstractArrow> entityType, LivingEntity shooter, Level level, CallbackInfo ci
-    ) {
     *///?}
+    public void visor$setupPos(CallbackInfo ci, @Local(argsOnly = true) LivingEntity shooter) {
         if (!(shooter instanceof ServerPlayer player)) {
            return;
         }

@@ -68,30 +68,32 @@ public abstract class GameRendererMixin {
     // 1.20.5 moved the ray trace into pick(Entity,DDF), pick(F)V has no Vec3 locals left
     //? if >=1.20.5 {
     @ModifyVariable(at = @At("STORE"), method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;", ordinal = 0)
-            //?} else {
-    /*@ModifyVariable(at = @At("STORE"), method = "pick(F)V", ordinal = 0)
-     *///?}
     public Vec3 visor$pickPos(Vec3 original) {
         return VRAimPicker.pickPos(original);
     }
 
-    //? if >=1.20.5 {
     @ModifyVariable(at = @At("STORE"), method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;", ordinal = 1)
-            //?} else {
-    /*@ModifyVariable(at = @At("STORE"), method = "pick(F)V", ordinal = 1)
-     *///?}
     public Vec3 visor$pickDirection(Vec3 original) {
         return VRAimPicker.pickDirection(original);
     }
 
-    //? if >=1.20.5 {
     @Redirect(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;"))
     private HitResult visor$vrBlockPick(Entity entity, double range, float partialTick, boolean fluid) {
         HitResult vrHit = VRAimPicker.vrBlockPick();
         return vrHit != null ? vrHit : entity.pick(range, partialTick, fluid);
     }
-    //?}
+    //?} else {
+    /*@ModifyVariable(at = @At("STORE"), method = "pick(F)V", ordinal = 0)
+    public Vec3 visor$pickPos(Vec3 original) {
+        return VRAimPicker.pickPos(original);
+    }
+
+    @ModifyVariable(at = @At("STORE"), method = "pick(F)V", ordinal = 1)
+    public Vec3 visor$pickDirection(Vec3 original) {
+        return VRAimPicker.pickDirection(original);
+    }
+    *///?}
 
 
     /* ************************* *\
@@ -102,9 +104,23 @@ public abstract class GameRendererMixin {
     //? if >=1.21 {
     @Shadow
     public abstract void renderItemActivationAnimation(GuiGraphics guiGraphics, float par1);
+
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(Lnet/minecraft/client/gui/GuiGraphics;F)V"), method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
+    private void visor$noItemActivationAnimInGUI(GameRenderer instance, GuiGraphics guiGraphics, float f) {
+        if(VRRenderState.getPhase().isVanilla()) {
+            renderItemActivationAnimation(guiGraphics, f);
+        }
+    }
     //?} else {
     /*@Shadow
     public abstract void renderItemActivationAnimation(int i, int j, float par1);
+
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(IIF)V"), method = "render(FJZ)V")
+    private void visor$noItemActivationAnimInGUI(GameRenderer instance, int i, int j, float f) {
+        if(VRRenderState.getPhase().isVanilla()) {
+            renderItemActivationAnimation(i, j, f);
+        }
+    }
     *///?}
 
     @Redirect(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
@@ -136,22 +152,6 @@ public abstract class GameRendererMixin {
         poseStack.mulPose(Axis.YP.rotation(-cameraPose.getYaw()));
         poseStack.mulPose(Axis.XP.rotation(-cameraPose.getPitch()));
     }
-
-    //? if >=1.21 {
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(Lnet/minecraft/client/gui/GuiGraphics;F)V"), method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
-    private void visor$noItemActivationAnimInGUI(GameRenderer instance, GuiGraphics guiGraphics, float f) {
-        if(VRRenderState.getPhase().isVanilla()) {
-            renderItemActivationAnimation(guiGraphics, f);
-        }
-    }
-    //?} else {
-    /*@Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(IIF)V"), method = "render(FJZ)V")
-    private void visor$noItemActivationAnimInGUI(GameRenderer instance, int i, int j, float f) {
-        if(VRRenderState.getPhase().isVanilla()) {
-            renderItemActivationAnimation(i, j, f);
-        }
-    }
-    *///?}
 
     @Redirect(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
     private void visor$noItemTranslate(PoseStack poseStack, float x, float y, float z) {

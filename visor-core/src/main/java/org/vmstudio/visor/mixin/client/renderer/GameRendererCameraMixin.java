@@ -84,12 +84,6 @@ public abstract class GameRendererCameraMixin {
     @ModifyExpressionValue(method = "renderLevel",
             at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotation(Lorg/joml/Quaternionfc;)Lorg/joml/Matrix4f;", remap = false))
     public Matrix4f visor$orientCameraToPass(Matrix4f frustumMatrix) {
-    //?} elif >=1.20.5 {
-    /*@ModifyExpressionValue(method = "renderLevel",
-            at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotationXYZ(FFF)Lorg/joml/Matrix4f;", remap = false))
-    public Matrix4f visor$orientCameraToPass(Matrix4f frustumMatrix) {
-    *///?}
-    //? if >=1.20.5 {
         if (VRRenderState.getPhase().isNotVanilla()) {
             RenderPoseHelper.applyCameraOrientation(
                     VRRenderState.getRenderPass(), frustumMatrix
@@ -97,7 +91,18 @@ public abstract class GameRendererCameraMixin {
         }
         return frustumMatrix;
     }
-    //?} else {
+    //?} elif >=1.20.5 {
+    /*@ModifyExpressionValue(method = "renderLevel",
+            at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotationXYZ(FFF)Lorg/joml/Matrix4f;", remap = false))
+    public Matrix4f visor$orientCameraToPass(Matrix4f frustumMatrix) {
+        if (VRRenderState.getPhase().isNotVanilla()) {
+            RenderPoseHelper.applyCameraOrientation(
+                    VRRenderState.getRenderPass(), frustumMatrix
+            );
+        }
+        return frustumMatrix;
+    }
+    *///?} else {
     /*@Inject(at = @At(value = "NEW", target = "org/joml/Matrix3f", remap = false),
             method = "renderLevel")
     public void visor$orientCameraToPass(float partialTicks, long nanos, PoseStack poseStack, CallbackInfo ci) {
