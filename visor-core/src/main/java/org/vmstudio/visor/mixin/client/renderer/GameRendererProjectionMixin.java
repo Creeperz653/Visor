@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-// projection per render pass (eye / third person / mixed reality), clip planes, FOV
+// projection per render pass
 @Mixin(GameRenderer.class)
 public abstract class GameRendererProjectionMixin implements GameRendererExtension {
 

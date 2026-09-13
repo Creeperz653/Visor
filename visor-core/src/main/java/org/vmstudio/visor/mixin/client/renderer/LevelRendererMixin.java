@@ -42,9 +42,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
-// per-pass level render
+// common mixin
 @Mixin(value = LevelRenderer.class, priority = 999)
-public abstract class LevelRendererRenderMixin implements LevelRendererExtension {
+public abstract class LevelRendererMixin implements LevelRendererExtension {
 
     // ---- Shadow fields ----
     @Final @Shadow
