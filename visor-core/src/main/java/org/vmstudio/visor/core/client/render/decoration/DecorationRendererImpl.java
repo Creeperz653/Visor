@@ -8,7 +8,6 @@ import lombok.Getter;
 import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.vmstudio.visor.api.ModLoader;
 import org.vmstudio.visor.api.VisorAPI;
-import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.api.client.events.render.HandRenderStateVREvent;
 import org.vmstudio.visor.api.client.events.render.RenderPipelineStageVREvent;
 import org.vmstudio.visor.api.client.render.RenderPipelineStage;
@@ -19,7 +18,6 @@ import org.vmstudio.visor.api.client.render.decoration.effects.VRGameEffect;
 import org.vmstudio.visor.api.client.render.decoration.hand.HandRenderState;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.addon.component.ComponentRegistry;
-import org.vmstudio.visor.api.server.events.ServerStartedVREvent;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.decoration.hand.VRHandRenderer;
 import org.vmstudio.visor.core.client.render.decoration.registry.DecoratorRegistry;
@@ -33,7 +31,7 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.render.helpers.RenderEffectsHelper;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.api.client.settings.enums.MirrorMode;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 
 import java.util.List;
 
@@ -319,12 +317,11 @@ public class DecorationRendererImpl implements VRDecorationRenderer {
         if (MC.level != null) {
             if (VRRenderState.getRenderPass().isFirstPerson()) {
                 //First person passes
-                float proximity = ((GameRendererExtension) MC.gameRenderer)
-                        .visor$getBlockProximity();
+                float proximity = VRCameraOverlaps.getBlockProximity();
                 if (proximity > 0.0f) {
                     RenderEffectsHelper.renderInBlockVignette(proximity);
                 }
-            } else if (((GameRendererExtension) MC.gameRenderer).visor$isInBlock()) {
+            } else if (VRCameraOverlaps.isInBlock()) {
                 // Third person passes
                 RenderEffectsHelper.renderInBlockEffect();
             }

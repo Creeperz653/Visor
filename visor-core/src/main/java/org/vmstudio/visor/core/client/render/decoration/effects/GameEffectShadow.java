@@ -15,8 +15,7 @@ import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.utils.VRMathUtils;
 import org.vmstudio.visor.core.client.ClientContext;
-import org.vmstudio.visor.extensions.client.entity.LocalPlayerExtension;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.RenderHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
@@ -68,8 +67,7 @@ public class GameEffectShadow extends VRGameEffect {
         Vec3 camPos = new Vec3((Vector3f) RenderPoseHelper.getCameraPosition(renderPass,
                 ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER))
         );
-        Vec3 worldPlayerPos = ((GameRendererExtension) MC.gameRenderer)
-                .visor$getCameraEntityCache()
+        Vec3 worldPlayerPos = VRCameraEntitySwap.getCameraEntityCache()
                 .getInterpolatedPos(partialTicks);
         Vec3 shadowPos = worldPlayerPos
                 .subtract(camPos)

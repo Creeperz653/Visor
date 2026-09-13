@@ -20,7 +20,8 @@ import org.vmstudio.visor.compatibility.ShaderCompatHelper;
 import org.vmstudio.visor.compatibility.sable.SableCompatHelper;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.core.client.player.VRAimPicker;
+import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -61,12 +62,11 @@ public class HandEffectCrosshair extends VRHandEffect {
 
         // --- Prepare variables ---
         VRPlayerPoseClient pose = ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER);
-        var renderer = (GameRendererExtension) MC.gameRenderer;
-        var aimHitPos = renderer.visor$getAimHitPos(hand);
+        var aimHitPos = VRAimPicker.getAimHitPos(hand);
         if (aimHitPos == null) {
             return;
         }
-        HitResult handHit = renderer.visor$getHandHitResult(hand);
+        HitResult handHit = VRAimPicker.getHandHitResult(hand);
         var rawCross = aimHitPos.toVector3f();
         var aim = rawCross.sub(pose.getHand(hand).getPosition(), new Vector3f());
         float worldScale = (float)Math.sqrt(pose.getWorldScale());
@@ -218,11 +218,11 @@ public class HandEffectCrosshair extends VRHandEffect {
             if(!VRServerSettings.isTwoHandedVR()){
                 return false;
             }
-            if(((GameRendererExtension) MC.gameRenderer).visor$getAimHitPos(hand) == null){
+            if(VRAimPicker.getAimHitPos(hand) == null){
                 return false;
             }
         }
-        boolean insideBlock = ((GameRendererExtension) MC.gameRenderer).visor$isInBlock();
+        boolean insideBlock = VRCameraOverlaps.isInBlock();
         if(insideBlock){
             return false;
         }

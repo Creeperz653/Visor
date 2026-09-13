@@ -12,7 +12,8 @@ import org.vmstudio.visor.api.client.render.decoration.annotations.RegisterVRGam
 import org.vmstudio.visor.api.client.render.decoration.effects.VRGameEffect;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.core.client.ClientContext;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
+import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -22,8 +23,6 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11C;
-
-import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 
 @RegisterVRGameEffect
@@ -46,8 +45,7 @@ public class GameEffectOnFire extends VRGameEffect {
         // --- Prepare variables ---
         VRPlayerPoseClient renderPose = ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER);
         float fireHeight = (float)(renderPose.getHeadPivot().y()
-                - ((GameRendererExtension)MC.gameRenderer)
-                .visor$getCameraEntityCache()
+                - VRCameraEntitySwap.getCameraEntityCache()
                 .getY());
 
         TextureAtlasSprite sprite = ModelBakery.FIRE_1.sprite();
@@ -116,7 +114,7 @@ public class GameEffectOnFire extends VRGameEffect {
 
     @Override
     public boolean isVisible(@NotNull VRDecorator currentDecorator) {
-        return ((GameRendererExtension) MC.gameRenderer).visor$isOnFire();
+        return VRCameraOverlaps.isOnFire();
     }
 
     @Override

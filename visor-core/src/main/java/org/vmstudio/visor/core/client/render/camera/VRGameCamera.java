@@ -1,4 +1,4 @@
-package org.vmstudio.visor.core.client.render;
+package org.vmstudio.visor.core.client.render.camera;
 
 //? if <1.21 {
 /*import com.mojang.math.Axis;
@@ -8,6 +8,7 @@ import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.common.utils.VRMathUtils;
 import org.vmstudio.visor.core.client.player.VRClientPlayers;
+import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;

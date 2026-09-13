@@ -30,7 +30,6 @@ import org.vmstudio.visor.core.client.tasks.types.movement.TaskRoomCrawl;
 import org.vmstudio.visor.core.common.CommonUtils;
 import org.vmstudio.visor.core.common.player.PoseHistoryImpl;
 import org.vmstudio.visor.extensions.client.entity.LocalPlayerExtension;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.tasks.types.movement.vehicle.TaskVehicle;
@@ -126,7 +125,7 @@ public class VRLocalPlayerImpl implements VRLocalPlayer {
 
         if (VisorState.get().isActive() && MC.level != null) {
             // refresh aim data, so the switching active hand can be instant
-            ((GameRendererExtension) MC.gameRenderer).visor$applyHandPick(activeHand);
+            VRAimPicker.applyHandPick(activeHand);
         }
 
         ClientNetworking.sendVRPacket(
@@ -418,7 +417,7 @@ public class VRLocalPlayerImpl implements VRLocalPlayer {
             return;
         }
 
-        Vec3 aimHitPos = ((GameRendererExtension) MC.gameRenderer).visor$getAimHitPos();
+        Vec3 aimHitPos = VRAimPicker.getAimHitPos();
         if (!VRClientSettings.isCompatibleLookDirection()
                 && aimHitPos != null) {
             visor$applyVectorLook(

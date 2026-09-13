@@ -14,7 +14,7 @@ import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlayPose;
 import org.vmstudio.visor.api.client.gui.helpers.TexturesHelper;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
 import net.minecraft.core.BlockPos;
@@ -105,7 +105,7 @@ public class RenderGuiHelper {
         if (useLitPath) {
 
             boolean overlayInBlock = RenderHelper.isInSolidBlock(position)
-                    || ((GameRendererExtension) MC.gameRenderer).visor$isInBlock();
+                    || VRCameraOverlaps.isInBlock();
             Vector3fc light = overlayInBlock
                     ? renderPose.getHmd().getPosition()
                     : position;

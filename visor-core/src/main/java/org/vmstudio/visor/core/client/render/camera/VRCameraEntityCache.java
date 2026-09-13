@@ -1,4 +1,4 @@
-package org.vmstudio.visor.core.client.render;
+package org.vmstudio.visor.core.client.render.camera;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

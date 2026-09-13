@@ -11,10 +11,10 @@ import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
+import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.CullFrustumHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderEffectsHelper;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
 import org.vmstudio.visor.extensions.client.render.LevelRendererExtension;
 import net.minecraft.client.Camera;
 //? if >=1.21 {
@@ -107,8 +107,7 @@ public abstract class LevelRendererRenderMixin implements LevelRendererExtension
         if (VRRenderState.getPhase().isNotVanilla()
                 && entity == minecraft.getCameraEntity()) {
             vrCameraEntity.set(entity);
-            ((GameRendererExtension) minecraft.gameRenderer)
-                    .visor$applyCachedCameraEntityPosition(entity);
+            VRCameraEntitySwap.applyCachedCameraEntityPosition(entity);
         }
         this.visor$currentRenderEntity = entity;
     }
@@ -119,8 +118,7 @@ public abstract class LevelRendererRenderMixin implements LevelRendererExtension
                                          @Share("vrCameraEntity") LocalRef<Entity> vrCameraEntity
     ) {
         if (vrCameraEntity.get() != null) {
-            ((GameRendererExtension) minecraft.gameRenderer)
-                    .visor$setupCameraEntityAsVRCamera();
+            VRCameraEntitySwap.setupCameraEntityAsVRCamera();
         }
         this.visor$currentRenderEntity = null;
     }

@@ -15,7 +15,7 @@ import org.vmstudio.visor.api.server.VRServerSettings;
 import org.vmstudio.visor.api.compatibility.ItemClassifier;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
-import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.core.client.player.VRAimPicker;
 import org.vmstudio.visor.core.client.network.ClientNetworking;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
@@ -177,8 +177,7 @@ public abstract class MultiPlayerGameModeMixin {
         Vec3 lookDirection = player.getLookAngle();
 
         // If a custom cross vector is available, adjust the look direction accordingly.
-        GameRendererExtension renderer = (GameRendererExtension) MC.gameRenderer;
-        Vec3 aimHitPos = renderer.visor$getAimHitPos();
+        Vec3 aimHitPos = VRAimPicker.getAimHitPos();
         if (aimHitPos != null) {
             lookDirection = player.getEyePosition(1.0F)
                     .subtract(aimHitPos)
