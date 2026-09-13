@@ -2,15 +2,13 @@ package org.vmstudio.visor.mixin.client.renderer.entity;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.llamalad7.mixinextras.sugar.Local;
 import org.vmstudio.visor.api.client.player.VRClientPlayer;
 import org.vmstudio.visor.core.client.player.VRClientPlayers;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.extensions.client.entity.EntityRenderDispatcherExtension;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Final;
@@ -40,15 +38,7 @@ public class EntityRendererMixin {
     }
 
     @Inject(method = "renderNameTag", at = @At("HEAD"), cancellable = true)
-    //? if >=1.20.5 {
-    private void visor$hideSpectatedVRNameTag(Entity entity, Component displayName,
-                                                PoseStack poseStack, MultiBufferSource buffer,
-                                                int packedLight, float partialTick, CallbackInfo ci) {
-    //?} else {
-    /*private void visor$hideSpectatedVRNameTag(Entity entity, Component displayName,
-                                                PoseStack poseStack, MultiBufferSource buffer,
-                                                int packedLight, CallbackInfo ci) {
-    *///?}
+    private void visor$hideSpectatedVRNameTag(CallbackInfo ci, @Local(argsOnly = true) Entity entity) {
         if (VRRenderState.isSpectatedVRView(entity)) {
             ci.cancel();
         }

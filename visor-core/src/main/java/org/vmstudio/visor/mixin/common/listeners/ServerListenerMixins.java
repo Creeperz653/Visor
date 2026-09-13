@@ -1,12 +1,8 @@
 package org.vmstudio.visor.mixin.common.listeners;
 
-//? if >=1.21 {
-import net.minecraft.network.DisconnectionDetails;
-//?}
 import org.vmstudio.visor.core.server.network.ServerNetworking;
 import org.vmstudio.visor.core.server.VisorServerImpl;
 import net.minecraft.network.TickablePacketListener;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -32,11 +28,7 @@ public class ServerListenerMixins {
         }
 
         @Inject(at = @At("TAIL"), method = "onDisconnect")
-        //? if >=1.21 {
-        public void visor$onPlayerLeave(DisconnectionDetails details, CallbackInfo ci) {
-        //?} else {
-        /*public void visor$onPlayerLeave(Component component, CallbackInfo ci) {
-        *///?}
+        public void visor$onPlayerLeave(CallbackInfo ci) {
             // remove player from vr player list, when they leave
 
             VisorServerImpl.INSTANCE.removePlayer(this.player);

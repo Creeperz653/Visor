@@ -1,8 +1,5 @@
 package org.vmstudio.visor.mixin.client.gui;
 
-//? if >=1.21 {
-import net.minecraft.client.DeltaTracker;
-//?}
 import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
@@ -142,13 +139,7 @@ public abstract class GuiMixin implements GuiExtension {
     }
 
     @Inject(at = @At("HEAD"), method = "renderCrosshair", cancellable = true)
-    //? if >=1.21 {
-    public void visor$noCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-    //?} elif >=1.20.5 {
-    /*public void visor$noCrosshair(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
-    *///?} else {
-    /*public void visor$noCrosshair(GuiGraphics guiGraphics, CallbackInfo ci) {
-    *///?}
+    public void visor$noCrosshair(CallbackInfo ci) {
         if(VisorState.get().isNotActive()) return;
         ci.cancel();
     }

@@ -6,7 +6,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.vertex.PoseStack;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.core.client.ClientContext;
@@ -17,13 +16,8 @@ import org.vmstudio.visor.core.client.render.helpers.CullFrustumHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderEffectsHelper;
 import org.vmstudio.visor.extensions.client.render.LevelRendererExtension;
 import net.minecraft.client.Camera;
-//? if >=1.21 {
-import net.minecraft.client.DeltaTracker;
-//?}
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -76,22 +70,10 @@ public abstract class LevelRendererMixin implements LevelRendererExtension {
         return 0;
     }
 
-    //? if >=1.21 {
     @Redirect(
-            method = "renderLevel(Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V",
+            method = "renderLevel",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
     )
-    //?} elif >=1.20.5 {
-    /*@Redirect(
-            method = "renderLevel(FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
-    )
-    *///?} else {
-    /*@Redirect(
-            method = "renderLevel(Lcom/mojang/blaze3d/vertex/PoseStack;FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
-    )
-    *///?}
     private boolean visor$renderSpectatedVRSelfView(Camera camera) {
         if (VRRenderState.isSpectatedVRView(camera.getEntity())) {
             return true;
@@ -126,25 +108,8 @@ public abstract class LevelRendererMixin implements LevelRendererExtension {
 
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;getRenderDistance()F", shift = Shift.BEFORE),
-            //? if >=1.21 {
-            method = "renderLevel(Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V")
-    public void visor$maskHiddenArea(DeltaTracker deltaTracker, boolean bl, Camera camera,
-                                     GameRenderer gameRenderer,
-                                     LightTexture lightTexture,
-                                     Matrix4f frustumMatrix, Matrix4f projectionMatrix,
-                                     CallbackInfo info
-    ) {
-            //?} elif >=1.20.5 {
-            /*method = "renderLevel(FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V")
-    public void visor$maskHiddenArea(float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer,
-                             LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo info
-    ) {
-    *///?} else {
-            /*method = "renderLevel(Lcom/mojang/blaze3d/vertex/PoseStack;FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;)V")
-    public void visor$maskHiddenArea(PoseStack poseStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer,
-                             LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo info
-    ) {
-    *///?}
+            method = "renderLevel")
+    public void visor$maskHiddenArea(CallbackInfo info) {
         if (VRRenderState.getPhase().isNotVanilla()) {
             RenderEffectsHelper.maskHiddenArea();
         }

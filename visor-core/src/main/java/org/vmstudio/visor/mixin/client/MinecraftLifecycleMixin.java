@@ -10,12 +10,8 @@ import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.tasks.types.movement.vehicle.TaskVehicle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Overlay;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
-//? if >=1.20.5 {
-import net.minecraft.client.gui.screens.ReceivingLevelScreen;
-//?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -102,17 +98,10 @@ public abstract class MinecraftLifecycleMixin {
     /**
      * Resets room origin when world changed
      *
-     * @param pLevelClient s
-     * @param info         s
+     * @param info s
      */
     @Inject(at = @At("HEAD"), method = "setLevel")
-    //? if >=1.20.5 {
-    public void visor$onLevelChange(ClientLevel pLevelClient,
-                                    ReceivingLevelScreen.Reason reason,
-                                    CallbackInfo info) {
-    //?} else {
-    /*public void visor$onLevelChange(ClientLevel pLevelClient, CallbackInfo info) {
-    *///?}
+    public void visor$onLevelChange(CallbackInfo info) {
         if (VisorState.get().isActive()) {
             ClientContext.localPlayer.setOrigin(
                     0.0f, 0.0f, 0.0f, true

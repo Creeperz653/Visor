@@ -57,12 +57,10 @@ public abstract class WinScreenMixin extends Screen {
 
     //? if >=1.20.2 {
     @Inject(at = @At("HEAD"), method = "renderBackground", cancellable = true)
-    private void visor$noCreditsBackground(GuiGraphics guiGraphics, int mouseX, int mouseY,
-                                           float partialTick, CallbackInfo ci) {
     //?} else {
     /*@Inject(at = @At("HEAD"), method = "renderBg", cancellable = true)
-    private void visor$noCreditsBackground(GuiGraphics guiGraphics, CallbackInfo ci) {
     *///?}
+    private void visor$noCreditsBackground(CallbackInfo ci) {
         if (VisorState.get().isActive()) {
             ci.cancel();
         }

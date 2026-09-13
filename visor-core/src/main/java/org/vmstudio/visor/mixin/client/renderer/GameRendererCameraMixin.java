@@ -11,9 +11,6 @@ import org.vmstudio.visor.core.client.render.helpers.RenderEffectsHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import org.vmstudio.visor.core.client.tasks.types.movement.TaskTeleport;
 import net.minecraft.client.Camera;
-//? if >=1.21 {
-import net.minecraft.client.DeltaTracker;
-//?}
 import org.joml.Quaternionf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -132,13 +129,7 @@ public abstract class GameRendererCameraMixin {
     }
 
     @Inject(at = @At(value = "TAIL"), method = "renderLevel")
-    //? if >=1.21 {
-    public void visor$restoreCamera(DeltaTracker deltaTracker, CallbackInfo i) {
-    //?} elif >=1.20.5 {
-    /*public void visor$restoreCamera(float f, long j, CallbackInfo i) {
-    *///?} else {
-    /*public void visor$restoreCamera(float f, long j, PoseStack p, CallbackInfo i) {
-    *///?}
+    public void visor$restoreCamera(CallbackInfo i) {
         if(VRRenderState.getPhase().isNotVanilla()) {
             VRCameraEntitySwap.restoreCameraEntity(
                     this.minecraft.getCameraEntity()
@@ -147,13 +138,7 @@ public abstract class GameRendererCameraMixin {
     }
 
     @Inject(at = @At("TAIL"), method = "renderLevel")
-    //? if >=1.21 {
-    public void visor$releaseHiddenAreaMask(DeltaTracker deltaTracker, CallbackInfo ci) {
-    //?} elif >=1.20.5 {
-    /*public void visor$releaseHiddenAreaMask(float f, long l, CallbackInfo ci) {
-    *///?} else {
-    /*public void visor$releaseHiddenAreaMask(float f, long l, PoseStack poseStack, CallbackInfo ci) {
-    *///?}
+    public void visor$releaseHiddenAreaMask(CallbackInfo ci) {
         if(VRRenderState.getPhase().isNotVanilla()) {
             RenderEffectsHelper.releaseHiddenAreaMask();
         }

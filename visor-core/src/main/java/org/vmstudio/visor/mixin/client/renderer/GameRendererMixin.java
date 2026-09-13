@@ -2,6 +2,7 @@ package org.vmstudio.visor.mixin.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
@@ -107,15 +108,9 @@ public abstract class GameRendererMixin {
     *///?}
 
     @Redirect(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
-            //? if >=1.21 {
     private void visor$skipActivationScale(PoseStack poseStack, float x, float y, float z,
-                                           GuiGraphics guiGraphics, float partialTicks
+                                           @Local(argsOnly = true) float partialTicks
     ) {
-        //?} else {
-    /*private void visor$skipActivationScale(PoseStack poseStack, float x, float y, float z, int width, int height,
-                                   float partialTicks
-    ) {
-    *///?}
         if (VRRenderState.getPhase().isVanilla()) {
             poseStack.scale(x, y, z);
             return;
