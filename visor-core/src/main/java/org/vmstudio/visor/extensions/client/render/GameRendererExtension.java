@@ -46,11 +46,7 @@ public interface GameRendererExtension {
     float visor$getFarClipPlane();
 
 
-    boolean visor$isInWater();
-
     boolean visor$isOnFire();
-
-    boolean visor$isInPortal();
 
     boolean visor$isInBlock();
 

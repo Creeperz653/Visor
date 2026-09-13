@@ -1,0 +1,223 @@
+package org.vmstudio.visor.mixin.client.renderer;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.vertex.PoseStack;
+import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
+import org.vmstudio.visor.api.client.render.VRRenderPass;
+import org.vmstudio.visor.core.client.ClientContext;
+import org.vmstudio.visor.core.client.VisorState;
+import org.vmstudio.visor.core.client.render.VRRenderState;
+import org.vmstudio.visor.core.client.render.helpers.CullFrustumHelper;
+import org.vmstudio.visor.core.client.render.helpers.RenderEffectsHelper;
+import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
+import org.vmstudio.visor.extensions.client.render.LevelRendererExtension;
+import net.minecraft.client.Camera;
+//? if >=1.21 {
+import net.minecraft.client.DeltaTracker;
+//?}
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import org.joml.Matrix4f;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.At.Shift;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
+
+// per-pass level render
+@Mixin(value = LevelRenderer.class, priority = 999)
+public abstract class LevelRendererRenderMixin implements LevelRendererExtension {
+
+    // ---- Shadow fields ----
+    @Final @Shadow
+    private Minecraft minecraft;
+
+    // ---- Unique fields ----
+    @Unique
+    private Entity visor$currentRenderEntity;
+    @Unique
+    private RenderTarget visor$savedRenderTarget;
+
+
+    /* ***************** *\
+  //--------MIXINS--------\\
+    \* ***************** */
+
+    @ModifyVariable(method = "prepareCullFrustum", at = @At("HEAD"), index = 3, argsOnly = true)
+    private Matrix4f visor$widenCullFrustum(Matrix4f projection) {
+        return CullFrustumHelper.widenCullProjection(projection);
+    }
+
+    @WrapOperation(method = "renderLevel", require = 1,
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/lighting/LevelLightEngine;runLightUpdates()I"))
+    private int visor$lightUpdatesOncePerFrame(LevelLightEngine engine, Operation<Integer> original) {
+        if (VisorState.get().isNotActive() || VRRenderState.getPhase().isNotVRWorld()
+                || VRRenderState.getRenderPass() == VRRenderPass.worldUpdater()) {
+            return original.call(engine);
+        }
+        return 0;
+    }
+
+    //? if >=1.21 {
+    @Redirect(
+            method = "renderLevel(Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
+    )
+    //?} elif >=1.20.5 {
+    /*@Redirect(
+            method = "renderLevel(FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
+    )
+    *///?} else {
+    /*@Redirect(
+            method = "renderLevel(Lcom/mojang/blaze3d/vertex/PoseStack;FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
+    )
+    *///?}
+    private boolean visor$renderSpectatedVRSelfView(Camera camera) {
+        if (VRRenderState.isSpectatedVRView(camera.getEntity())) {
+            return true;
+        }
+        return camera.isDetached();
+    }
+
+    @Inject(at = @At("HEAD"), method = "renderEntity")
+    public void visor$captureEntityRestore(CallbackInfo ci,
+                                           @Local(argsOnly = true) Entity entity,
+                                           @Share("vrCameraEntity") LocalRef<Entity> vrCameraEntity
+    ) {
+        if (VRRenderState.getPhase().isNotVanilla()
+                && entity == minecraft.getCameraEntity()) {
+            vrCameraEntity.set(entity);
+            ((GameRendererExtension) minecraft.gameRenderer)
+                    .visor$applyCachedCameraEntityPosition(entity);
+        }
+        this.visor$currentRenderEntity = entity;
+    }
+
+    @Inject(at = @At("TAIL"), method = "renderEntity")
+    public void visor$captureEntitySetup(CallbackInfo ci,
+                                         @Local(argsOnly = true) Entity entity,
+                                         @Share("vrCameraEntity") LocalRef<Entity> vrCameraEntity
+    ) {
+        if (vrCameraEntity.get() != null) {
+            ((GameRendererExtension) minecraft.gameRenderer)
+                    .visor$setupCameraEntityAsVRCamera();
+        }
+        this.visor$currentRenderEntity = null;
+    }
+
+
+
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;getRenderDistance()F", shift = Shift.BEFORE),
+            //? if >=1.21 {
+            method = "renderLevel(Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V")
+    public void visor$maskHiddenArea(DeltaTracker deltaTracker, boolean bl, Camera camera,
+                                     GameRenderer gameRenderer,
+                                     LightTexture lightTexture,
+                                     Matrix4f frustumMatrix, Matrix4f projectionMatrix,
+                                     CallbackInfo info
+    ) {
+            //?} elif >=1.20.5 {
+            /*method = "renderLevel(FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V")
+    public void visor$maskHiddenArea(float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer,
+                             LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo info
+    ) {
+    *///?} else {
+            /*method = "renderLevel(Lcom/mojang/blaze3d/vertex/PoseStack;FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;)V")
+    public void visor$maskHiddenArea(PoseStack poseStack, float f, long l, boolean bl, Camera camera, GameRenderer gameRenderer,
+                             LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo info
+    ) {
+    *///?}
+        if (VRRenderState.getPhase().isNotVanilla()) {
+            RenderEffectsHelper.maskHiddenArea();
+        }
+    }
+
+
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;floor(D)I", ordinal = 0), method = "renderSnowAndRain")
+    public double visor$rainAndSnowX(double x) {
+        if (VRRenderState.getRenderPass().isEye()) {
+            return ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER)
+                    .getHmd().getPosition().x();
+        }
+        return x;
+    }
+
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;floor(D)I", ordinal = 1), method = "renderSnowAndRain")
+    public double visor$rainAndSnowY(double y) {
+        if (VRRenderState.getRenderPass().isEye()) {
+            return ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER)
+                    .getHmd().getPosition().y();
+        }
+        return y;
+    }
+
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;floor(D)I", ordinal = 2), method = "renderSnowAndRain")
+    public double visor$rainAndSnowZ(double z) {
+        if (VRRenderState.getRenderPass().isEye()) {
+            return ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER).getHmd().getPosition().z();
+        }
+        return z;
+    }
+
+
+    /**
+     * That fixes issue with incorrect resolution
+     * for post chain effects in some cases
+     * (like for FIRST_PERSON, THIRD_PERSON VR cameras
+     * that use different resolution from initial)
+     */
+    @Inject(method = {"initOutline", "initTransparency"}, at = @At("HEAD"))
+    private void visor$ensureVanillaPhase(CallbackInfo ci) {
+        if (VisorState.get().isActive() && VRRenderState.getPhase().isNotVanilla()) {
+            this.visor$savedRenderTarget = MC.mainRenderTarget;
+            MC.mainRenderTarget = VRRenderState.getVanillaTarget();
+        }
+    }
+    @Inject(method = {"initOutline", "initTransparency"}, at = @At("TAIL"))
+    private void visor$restoreAfterInit(CallbackInfo ci) {
+        if (this.visor$savedRenderTarget != null) {
+            MC.mainRenderTarget = this.visor$savedRenderTarget;
+            this.visor$savedRenderTarget = null;
+        }
+    }
+
+    @Inject(at = @At("TAIL"), method = "onResourceManagerReload")
+    public void visor$onResourceManagerReload(ResourceManager resourceManager, CallbackInfo ci) {
+        if (VisorState.get().isInitialized()) {
+            ClientContext.renderer.prepareReinit(
+                    "resource manager reloaded"
+            );
+        }
+    }
+
+
+    /* ************************ *\
+  //--------PUBLIC METHODS--------\\
+    \* ************************ */
+
+    @Override
+    @Unique
+    public Entity visor$getCurrentRenderEntity() {
+        return this.visor$currentRenderEntity;
+    }
+}

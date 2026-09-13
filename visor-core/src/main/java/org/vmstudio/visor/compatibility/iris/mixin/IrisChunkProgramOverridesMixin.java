@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.Pseudo;
 public class IrisChunkProgramOverridesMixin {
 }
 //?} else {
-/*
-import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
+
+/*import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.compat.sodium.impl.shader_overrides.IrisChunkProgramOverrides;
