@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import com.llamalad7.mixinextras.sugar.Local;
 
 @Mixin(OptionsScreen.class)
@@ -59,10 +58,8 @@ public class OptionsScreenVRMixin extends Screen {
         return 1;
     }
 
-    @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/GridLayout$RowHelper;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;I)Lnet/minecraft/client/gui/layouts/LayoutElement;"), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void visor$addVRSettingsButton(CallbackInfo ci,
-                                          GridLayout gridLayout,
-                                          GridLayout.RowHelper rowHelper) {
+    @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/GridLayout$RowHelper;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;I)Lnet/minecraft/client/gui/layouts/LayoutElement;"))
+    private void visor$addVRSettingsButton(CallbackInfo ci, @Local GridLayout.RowHelper rowHelper) {
         rowHelper.addChild(visor$vrSettingsButton());
     }
     *///?}

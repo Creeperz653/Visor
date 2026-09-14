@@ -84,6 +84,7 @@ public class PlayerRenderMixins {
 
         }
 
+        //keep @Local without variable name, to search by type
         @Inject(method = "onResourceManagerReload", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderers;createPlayerRenderers(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Ljava/util/Map;"))
         private void visor$rebuildVRBodyModels(CallbackInfo ci, @Local EntityRendererProvider.Context context) {
             if(ClientContext.visor == null) {

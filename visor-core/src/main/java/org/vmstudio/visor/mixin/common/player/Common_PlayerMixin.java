@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.vmstudio.visor.api.VisorAPI;
@@ -101,10 +100,10 @@ public abstract class Common_PlayerMixin extends Common_LivingEntityMixin
         }
     }
 
-    @Redirect(method = "hurtCurrentlyUsedShield", at = @At(value = "INVOKE",
+    @WrapOperation(method = "hurtCurrentlyUsedShield", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/entity/player/Player;getUsedItemHand()Lnet/minecraft/world/InteractionHand;"))
-    private InteractionHand visor$poseBlockShieldArm(Player self) {
-        return visor$poseBlockHand != null ? visor$poseBlockHand : self.getUsedItemHand();
+    private InteractionHand visor$poseBlockShieldArm(Player self, Operation<InteractionHand> original) {
+        return visor$poseBlockHand != null ? visor$poseBlockHand : original.call(self);
     }
 
 

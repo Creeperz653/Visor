@@ -1,5 +1,6 @@
 package org.vmstudio.visor.mixin.client.world;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.core.client.ClientContext;
@@ -18,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
@@ -57,8 +57,9 @@ public abstract class BoatMixin extends Entity {
         return VisorState.get().isActive() && MC.player != null;
     }
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/vehicle/Boat;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", shift = At.Shift.BEFORE), method = "controlBoat", locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
-    public void visor$rowingInVR(CallbackInfo ci, float forward) {
+    //keep @Local without variable name, to search by type
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/vehicle/Boat;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", shift = At.Shift.BEFORE), method = "controlBoat", cancellable = true)
+    public void visor$rowingInVR(CallbackInfo ci, @Local float forward) {
         if (VisorState.get().isNotActive()) {
             return;
         }

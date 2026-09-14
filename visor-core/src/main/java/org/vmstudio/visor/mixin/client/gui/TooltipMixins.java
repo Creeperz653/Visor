@@ -6,7 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 //? if >=1.20.5 {
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.gui.components.Tooltip;
@@ -34,19 +35,19 @@ public class TooltipMixins {
         @Shadow
         private Tooltip tooltip;
 
-        @Redirect(
+        @WrapOperation(
                 method = "refreshTooltipForNextRenderPass",
                 at = @At(
                         value = "FIELD",
                         target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;"
                 )
         )
-        private Screen visor$redirectMinecraftScreen(Minecraft minecraftInstance) {
+        private Screen visor$redirectMinecraftScreen(Minecraft minecraftInstance, Operation<Screen> original) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
             if (overlay != null) {
                 return overlay;
             }
-            return minecraftInstance.screen;
+            return original.call(minecraftInstance);
         }
 
         // McButton wraps its tooltip to carry the positioner it wants
@@ -68,38 +69,38 @@ public class TooltipMixins {
     @Mixin(Tooltip.class)
     public static class TooltipScreenMixin {
 
-        @Redirect(
+        @WrapOperation(
                 method = "refreshTooltipForNextRenderPass",
                 at = @At(
                         value = "FIELD",
                         target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;"
                 )
         )
-        private Screen visor$redirectMinecraftScreen(Minecraft minecraftInstance) {
+        private Screen visor$redirectMinecraftScreen(Minecraft minecraftInstance, Operation<Screen> original) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
             if (overlay != null) {
                 return overlay;
             }
-            return minecraftInstance.screen;
+            return original.call(minecraftInstance);
         }
     }
     *///?} else {
     /*@Mixin(AbstractWidget.class)
     public static class TooltipScreenMixin {
 
-        @Redirect(
+        @WrapOperation(
                 method = "updateTooltip",
                 at = @At(
                         value = "FIELD",
                         target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;"
                 )
         )
-        private Screen visor$redirectMinecraftScreen(Minecraft minecraftInstance) {
+        private Screen visor$redirectMinecraftScreen(Minecraft minecraftInstance, Operation<Screen> original) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
             if (overlay != null) {
                 return overlay;
             }
-            return minecraftInstance.screen;
+            return original.call(minecraftInstance);
         }
     }
     *///?}

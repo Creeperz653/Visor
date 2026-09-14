@@ -31,7 +31,6 @@ import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
@@ -70,15 +69,15 @@ public abstract class LevelRendererMixin implements LevelRendererExtension {
         return 0;
     }
 
-    @Redirect(
+    @WrapOperation(
             method = "renderLevel",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;isDetached()Z")
     )
-    private boolean visor$renderSpectatedVRSelfView(Camera camera) {
+    private boolean visor$renderSpectatedVRSelfView(Camera camera, Operation<Boolean> original) {
         if (VRRenderState.isSpectatedVRView(camera.getEntity())) {
             return true;
         }
-        return camera.isDetached();
+        return original.call(camera);
     }
 
     @Inject(at = @At("HEAD"), method = "renderEntity")

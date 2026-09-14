@@ -12,7 +12,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vmstudio.visor.core.client.VisorState;
 
@@ -48,8 +49,8 @@ public abstract class WinScreenMixin extends Screen {
 
     // 1.20.5 render() no longer sets the blend func itself
     //? if <1.20.5 {
-    /*@Redirect(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;blendFunc(Lcom/mojang/blaze3d/platform/GlStateManager$SourceFactor;Lcom/mojang/blaze3d/platform/GlStateManager$DestFactor;)V"), method = "render")
-    private void visor$keepAlpha(GlStateManager.SourceFactor sourceFactor, GlStateManager.DestFactor destFactor) {
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;blendFunc(Lcom/mojang/blaze3d/platform/GlStateManager$SourceFactor;Lcom/mojang/blaze3d/platform/GlStateManager$DestFactor;)V"), method = "render")
+    private void visor$keepAlpha(GlStateManager.SourceFactor sourceFactor, GlStateManager.DestFactor destFactor, Operation<Void> original) {
         RenderSystem.blendFuncSeparate(sourceFactor, destFactor, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
     }
     *///?}
@@ -74,15 +75,16 @@ public abstract class WinScreenMixin extends Screen {
         }
     }
     //?} else {
-    /*@Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIFFIIII)V"), method = "render")
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIFFIIII)V"), method = "render")
     private void visor$noVignette(GuiGraphics instance,
                                   ResourceLocation texture,
                                   int x, int y, int blitOffset,
                                   float uOffset, float vOffset,
                                   int uWidth, int vHeight,
-                                  int textureWidth, int textureHeight) {
+                                  int textureWidth, int textureHeight,
+                                  Operation<Void> original) {
         if (VisorState.get().isNotActive()) {
-            instance.blit(texture, x, y, blitOffset, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
+            original.call(instance, texture, x, y, blitOffset, uOffset, vOffset, uWidth, vHeight, textureWidth, textureHeight);
         }
     }
     *///?}

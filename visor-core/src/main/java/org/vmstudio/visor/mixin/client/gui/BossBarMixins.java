@@ -15,7 +15,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //?} else {
 /*import net.minecraft.client.gui.Gui;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 *///?}
 
 public class BossBarMixins {
@@ -48,14 +49,14 @@ public class BossBarMixins {
         @Shadow
         private Minecraft minecraft;
 
-        @Redirect(at = @At(value = "INVOKE",
+        @WrapOperation(at = @At(value = "INVOKE",
                 target = "Lnet/minecraft/client/gui/components/BossHealthOverlay;render(Lnet/minecraft/client/gui/GuiGraphics;)V"),
                 method = "render")
         public void visor$noVanillaGuiBossHealth(BossHealthOverlay instance,
-                                                 GuiGraphics guiGraphics) {
+                                                 GuiGraphics guiGraphics, Operation<Void> original) {
             if(VisorState.get().isNotActive() || (minecraft.screen == null
                     && ClientContext.visor.isFeatureDisabled(ClientFeature.GUI_DISABLE_HUD))) {
-                instance.render(guiGraphics);
+                original.call(instance, guiGraphics);
             }
         }
     }

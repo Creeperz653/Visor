@@ -17,7 +17,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
@@ -83,18 +84,18 @@ public abstract class GuiMixin implements GuiExtension {
         ci.cancel();
     }
     //?} else {
-    /*@Redirect(at = @At(value = "INVOKE",
+    /*@WrapOperation(at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/gui/components/ChatComponent;render(Lnet/minecraft/client/gui/GuiGraphics;III)V"),
             method = "render")
     public void visor$noVanillaGuiChat(ChatComponent instance,
                                        GuiGraphics guiGraphics,
-                                       int i, int j, int k) {
+                                       int i, int j, int k, Operation<Void> original) {
         if(VisorState.get().isNotActive()) {
-            instance.render(guiGraphics,i,j,k);
+            original.call(instance, guiGraphics, i, j, k);
             return;
         }
         if(minecraft.screen instanceof ChatScreen) {
-            instance.render(guiGraphics, i, j, k);
+            original.call(instance, guiGraphics, i, j, k);
         }
     }
     *///?}
@@ -145,14 +146,14 @@ public abstract class GuiMixin implements GuiExtension {
     }
 
     //? if >=1.20.5 {
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getSleepTimer()I"), method = "renderSleepOverlay")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getSleepTimer()I"), method = "renderSleepOverlay")
     //?} else {
-    /*@Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getSleepTimer()I"), method = "render")
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getSleepTimer()I"), method = "render")
     *///?}
-    public int visor$suppressSleepFade(LocalPlayer instance) {
+    public int visor$suppressSleepFade(LocalPlayer instance, Operation<Integer> original) {
         return VisorState.get().isActive()
                 ? 0
-                : instance.getSleepTimer();
+                : original.call(instance);
     }
 
 }

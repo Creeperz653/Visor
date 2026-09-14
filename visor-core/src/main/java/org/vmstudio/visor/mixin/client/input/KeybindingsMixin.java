@@ -1,5 +1,7 @@
 package org.vmstudio.visor.mixin.client.input;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.minecraft.client.gui.screens.ChatScreen;
 import org.lwjgl.glfw.GLFW;
@@ -12,11 +14,9 @@ import org.vmstudio.visor.api.client.render.VRSceneType;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
 import net.minecraft.client.KeyboardHandler;
-import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 
 import java.io.File;
@@ -43,10 +43,10 @@ public class KeybindingsMixin {
             }
         }
     }
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Screenshot;grab(Ljava/io/File;Lcom/mojang/blaze3d/pipeline/RenderTarget;Ljava/util/function/Consumer;)V"), method = "keyPress")
-    public void visor$screenshot(File file, RenderTarget renderTarget, Consumer<Component> consumer) {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Screenshot;grab(Ljava/io/File;Lcom/mojang/blaze3d/pipeline/RenderTarget;Ljava/util/function/Consumer;)V"), method = "keyPress")
+    public void visor$screenshot(File file, RenderTarget renderTarget, Consumer<Component> consumer, Operation<Void> original) {
         if (VisorState.get().isNotActive()) {
-            Screenshot.grab(file, renderTarget, consumer);
+            original.call(file, renderTarget, consumer);
             return;
         }
         ClientContext.renderer.setAskedForScreenShot(true);

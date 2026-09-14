@@ -5,6 +5,7 @@ import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import net.minecraft.util.Mth;
 import org.vmstudio.visor.api.client.input.HapticFeedback;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.network.toserver.TeleportMovePayloadToServer;
@@ -383,10 +384,10 @@ public abstract class LocalPlayerMixin extends Common_PlayerMixin implements Loc
      * Skips the outgoing position packet on the tick a VR teleport happened,
      * so the server does not flag the jump as illegal movement.
      */
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "sendPosition", slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z")))
-    public void visor$noPosPacketOnTeleport(ClientPacketListener instance, Packet<?> packet) {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "sendPosition", slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z")))
+    public void visor$noPosPacketOnTeleport(ClientPacketListener instance, Packet<?> packet, Operation<Void> original) {
         if (!this.visor$teleported) {
-            instance.send(packet);
+            original.call(instance, packet);
         }
     }
 

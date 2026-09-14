@@ -2,6 +2,7 @@ package org.vmstudio.visor.mixin.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -20,7 +21,6 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.player.VRAimPicker;
 import org.vmstudio.visor.core.client.render.VRRenderState;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Final;
@@ -28,7 +28,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
@@ -42,10 +41,6 @@ public abstract class GameRendererMixin {
     // ---- Shadow fields ----
     @Shadow @Final
     Minecraft minecraft;
-    @Shadow
-    private boolean renderHand;
-    @Shadow
-    private boolean effectActive;
     @Shadow
     private float fov;
     @Shadow
@@ -77,11 +72,11 @@ public abstract class GameRendererMixin {
         return VRAimPicker.pickDirection(original);
     }
 
-    @Redirect(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
+    @WrapOperation(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;"))
-    private HitResult visor$vrBlockPick(Entity entity, double range, float partialTick, boolean fluid) {
+    private HitResult visor$vrBlockPick(Entity entity, double range, float partialTick, boolean fluid, Operation<HitResult> original) {
         HitResult vrHit = VRAimPicker.vrBlockPick();
-        return vrHit != null ? vrHit : entity.pick(range, partialTick, fluid);
+        return vrHit != null ? vrHit : original.call(entity, range, partialTick, fluid);
     }
     //?} else {
     /*@ModifyVariable(at = @At("STORE"), method = "pick(F)V", ordinal = 0)
@@ -102,33 +97,28 @@ public abstract class GameRendererMixin {
     // item activation animation: skipped in the GUI pass, GameEffectVanilla draws it
 
     //? if >=1.21 {
-    @Shadow
-    public abstract void renderItemActivationAnimation(GuiGraphics guiGraphics, float par1);
-
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(Lnet/minecraft/client/gui/GuiGraphics;F)V"), method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
-    private void visor$noItemActivationAnimInGUI(GameRenderer instance, GuiGraphics guiGraphics, float f) {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(Lnet/minecraft/client/gui/GuiGraphics;F)V"), method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
+    private void visor$noItemActivationAnimInGUI(GameRenderer instance, GuiGraphics guiGraphics, float f, Operation<Void> original) {
         if(VRRenderState.getPhase().isVanilla()) {
-            renderItemActivationAnimation(guiGraphics, f);
+            original.call(instance, guiGraphics, f);
         }
     }
     //?} else {
-    /*@Shadow
-    public abstract void renderItemActivationAnimation(int i, int j, float par1);
-
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(IIF)V"), method = "render(FJZ)V")
-    private void visor$noItemActivationAnimInGUI(GameRenderer instance, int i, int j, float f) {
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemActivationAnimation(IIF)V"), method = "render(FJZ)V")
+    private void visor$noItemActivationAnimInGUI(GameRenderer instance, int i, int j, float f, Operation<Void> original) {
         if(VRRenderState.getPhase().isVanilla()) {
-            renderItemActivationAnimation(i, j, f);
+            original.call(instance, i, j, f);
         }
     }
     *///?}
 
-    @Redirect(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
+    @WrapOperation(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
     private void visor$skipActivationScale(PoseStack poseStack, float x, float y, float z,
+                                           Operation<Void> original,
                                            @Local(argsOnly = true) float partialTicks
     ) {
         if (VRRenderState.getPhase().isVanilla()) {
-            poseStack.scale(x, y, z);
+            original.call(poseStack, x, y, z);
             return;
         }
         VRRenderPass currentCamera = VRRenderState.getRenderPass();
@@ -148,15 +138,15 @@ public abstract class GameRendererMixin {
             popScale *= fov / 70.0F;
         }
         RenderPoseHelper.applyCameraPose(currentCamera, poseStack);
-        poseStack.scale(popScale, popScale, popScale);
+        original.call(poseStack, popScale, popScale, popScale);
         poseStack.mulPose(Axis.YP.rotation(-cameraPose.getYaw()));
         poseStack.mulPose(Axis.XP.rotation(-cameraPose.getPitch()));
     }
 
-    @Redirect(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
-    private void visor$noItemTranslate(PoseStack poseStack, float x, float y, float z) {
+    @WrapOperation(method = "renderItemActivationAnimation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
+    private void visor$noItemTranslate(PoseStack poseStack, float x, float y, float z, Operation<Void> original) {
         if(VRRenderState.getPhase().isVanilla()) {
-            poseStack.translate(x, y, z);
+            original.call(poseStack, x, y, z);
         }
     }
 
@@ -180,14 +170,14 @@ public abstract class GameRendererMixin {
         }
     }
 
-    @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;effectActive:Z"), method = "render")
-    public boolean visor$noPostEffectOnThirdPerson(GameRenderer instance) {
-        return this.effectActive && VRRenderState.getRenderPass() != VRRenderPass.THIRD_PERSON;
+    @WrapOperation(at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;effectActive:Z"), method = "render")
+    public boolean visor$noPostEffectOnThirdPerson(GameRenderer instance, Operation<Boolean> original) {
+        return original.call(instance) && VRRenderState.getRenderPass() != VRRenderPass.THIRD_PERSON;
     }
 
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;isWindowActive()Z"), method = "render")
-    public boolean visor$noPauseGameIfWindowNotFocused(Minecraft instance) {
-        return VisorState.get().isActive() || instance.isWindowActive();
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;isWindowActive()Z"), method = "render")
+    public boolean visor$noPauseGameIfWindowNotFocused(Minecraft instance, Operation<Boolean> original) {
+        return VisorState.get().isActive() || original.call(instance);
     }
 
     @Inject(at = @At("HEAD"), method = "tickFov", cancellable = true)
@@ -226,22 +216,22 @@ public abstract class GameRendererMixin {
         }
     }
 
-    @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;renderHand:Z"), method = "renderLevel")
-    public boolean visor$noVanillaHands(GameRenderer instance) {
+    @WrapOperation(at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;renderHand:Z"), method = "renderLevel")
+    public boolean visor$noVanillaHands(GameRenderer instance, Operation<Boolean> original) {
         if (VRRenderState.isSpectatedVRView(minecraft.getCameraEntity())) {
             return false;
         }
-        return VRRenderState.getPhase().isVanilla() && renderHand;
+        return VRRenderState.getPhase().isVanilla() && original.call(instance);
     }
 
     /**
      * Only process this when rendering vanilla
      * or VR camera that is a worldUpdater
      */
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;pauseGame(Z)V"), method = "render")
-    public void visor$pauseOncePerFrame(Minecraft instance, boolean bl) {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;pauseGame(Z)V"), method = "render")
+    public void visor$pauseOncePerFrame(Minecraft instance, boolean bl, Operation<Void> original) {
         if (VisorState.get().isNotActive() || VRRenderState.getRenderPass() == VRRenderPass.worldUpdater()) {
-            instance.pauseGame(bl);
+            original.call(instance, bl);
         }
     }
 
@@ -249,10 +239,10 @@ public abstract class GameRendererMixin {
      * Only process this when rendering vanilla
      * or VR camera that is a worldUpdater
      */
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;getMillis()J"), method = "render")
-    public long visor$useActiveTimeOncePerFrame() {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;getMillis()J"), method = "render")
+    public long visor$useActiveTimeOncePerFrame(Operation<Long> original) {
         if (VisorState.get().isNotActive() || VRRenderState.getRenderPass() == VRRenderPass.worldUpdater()) {
-            return Util.getMillis();
+            return original.call();
         } else {
             return this.lastActiveTime;
         }

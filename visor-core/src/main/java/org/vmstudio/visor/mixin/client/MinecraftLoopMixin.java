@@ -25,7 +25,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Consumer;
@@ -201,10 +200,10 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      * @param instance s
      * @param f        s
      */
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;pick(F)V"), method = "tick")
-    public void visor$noVanillaHitResult(GameRenderer instance, float f) {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;pick(F)V"), method = "tick")
+    public void visor$noVanillaHitResult(GameRenderer instance, float f, Operation<Void> original) {
         if (VisorState.get().isNotActive()) {
-            instance.pick(f);
+            original.call(instance, f);
         }
     }
 

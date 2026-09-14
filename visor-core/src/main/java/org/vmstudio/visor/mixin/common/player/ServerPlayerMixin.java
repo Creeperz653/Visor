@@ -2,6 +2,7 @@ package org.vmstudio.visor.mixin.common.player;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.tags.DamageTypeTags;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.common.HandType;
@@ -41,7 +42,6 @@ import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 
 @Mixin(ServerPlayer.class)
@@ -121,13 +121,13 @@ public abstract class ServerPlayerMixin
     }
 
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z", shift = Shift.BEFORE), method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;",
-        locals = LocalCapture.CAPTURE_FAILHARD)
+    //keep @Local without variable name, to search by type
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z", shift = Shift.BEFORE), method = "drop(Lnet/minecraft/world/item/ItemStack;ZZ)Lnet/minecraft/world/entity/item/ItemEntity;")
     public void visor$vrItemDrop(ItemStack itemStack,
                                 boolean dropAround,
                                 boolean includeName,
                                 CallbackInfoReturnable<ItemEntity> info,
-                                ItemEntity itemEntity) {
+                                @Local ItemEntity itemEntity) {
         VRServerPlayer vrPlayer = visor$getVrPlayer();
         if (vrPlayer == null
                 || dropAround) {

@@ -1,6 +1,8 @@
 package org.vmstudio.visor.mixin.common.player;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.world.InteractionHand;
 import org.objectweb.asm.Opcodes;
@@ -27,7 +29,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.common.HandType;
@@ -112,29 +113,27 @@ public abstract class ServerPlayerGameModeMixin implements ServerPlayerGameModeE
     private ItemStack visor$vrHandItem(ServerPlayer player) {
         ItemStack forced = CommonUtils.FORCED_HAND_ITEM.get();
         if (forced != null) return forced;
-        if(!VRServerSettings.isTwoHandedVR()) return player.getMainHandItem();
+        if (!VRServerSettings.isTwoHandedVR()) return null;
         VRPlayer vrPlayer = VisorAPI.getVRPlayer(player);
-        if (vrPlayer == null) {
-            return player.getMainHandItem();
-        }
-        if (vrPlayer.getActiveHand() == HandType.OFFHAND) {
+        if (vrPlayer != null && vrPlayer.getActiveHand() == HandType.OFFHAND) {
             return player.getOffhandItem();
-        } else {
-            return player.getMainHandItem();
         }
+        return null;
     }
 
-    @Redirect(method = "destroyBlock", at = @At(value = "INVOKE",
+    @WrapOperation(method = "destroyBlock", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/server/level/ServerPlayer;getMainHandItem()Lnet/minecraft/world/item/ItemStack;"))
-    public ItemStack visor$destroyBlock(ServerPlayer player) {
-        return visor$vrHandItem(player);
+    public ItemStack visor$destroyBlock(ServerPlayer player, Operation<ItemStack> original) {
+        ItemStack item = visor$vrHandItem(player);
+        return item != null ? item : original.call(player);
     }
 
     //? if >=1.21 {
-    @Redirect(method = "handleBlockBreakAction", at = @At(value = "INVOKE",
+    @WrapOperation(method = "handleBlockBreakAction", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/server/level/ServerPlayer;getMainHandItem()Lnet/minecraft/world/item/ItemStack;"))
-    private ItemStack visor$hitBlockHandItem(ServerPlayer player) {
-        return visor$vrHandItem(player);
+    private ItemStack visor$hitBlockHandItem(ServerPlayer player, Operation<ItemStack> original) {
+        ItemStack item = visor$vrHandItem(player);
+        return item != null ? item : original.call(player);
     }
     //?}
 
