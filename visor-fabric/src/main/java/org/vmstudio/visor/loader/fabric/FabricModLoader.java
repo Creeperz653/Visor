@@ -208,8 +208,10 @@ public class FabricModLoader implements ModLoader {
         //? if >=1.20.5 {
         CustomPacketPayload.Type<RawPayload> type = payloadType(channel.getChannelId());
         StreamCodec<FriendlyByteBuf, RawPayload> codec = RawPayload.codec(type);
+        // from 1.20.5 both sender and receiver need same
+        PayloadTypeRegistry.playC2S().register(type, codec);
+        PayloadTypeRegistry.playS2C().register(type, codec);
         if (channel.hasPacketsToServer()) {
-            PayloadTypeRegistry.playC2S().register(type, codec);
             ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) ->
                     channel.handleToServer(
                             payload.buffer(),
@@ -220,7 +222,6 @@ public class FabricModLoader implements ModLoader {
         }
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT
                 && channel.hasPacketsToClient()) {
-            PayloadTypeRegistry.playS2C().register(type, codec);
             ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) ->
                     channel.handleToClient(payload.buffer()));
         }
