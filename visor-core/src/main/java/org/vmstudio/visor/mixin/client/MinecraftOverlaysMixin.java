@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-// VROverlayGameScreen follows setScreen / setOverlay, overlay manager ticked after Gui.tick
 @Mixin(Minecraft.class)
 public abstract class MinecraftOverlaysMixin {
 
@@ -33,7 +32,7 @@ public abstract class MinecraftOverlaysMixin {
      * @param pGuiScreen s
      * @param info       s
      */
-    @Inject(at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;", shift = Shift.BEFORE, ordinal = 0), method = "setScreen(Lnet/minecraft/client/gui/screens/Screen;)V")
+    @Inject(at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;", shift = Shift.BEFORE, ordinal = 0), method = "setScreen(Lnet/minecraft/client/gui/screens/Screen;)V", require = 1)
     public void visor$onOpenScreen(Screen pGuiScreen, CallbackInfo info) {
         if (VisorState.get().isNotActive()) return;
 

@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-// client lifecycle: vanilla target captured in <init>, load finished, world load, level change, camera entity change, shutdown
 @Mixin(Minecraft.class)
 public abstract class MinecraftLifecycleMixin {
 
@@ -48,14 +47,14 @@ public abstract class MinecraftLifecycleMixin {
      * @param overlay s
      * @return s
      */
-    @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;setOverlay(Lnet/minecraft/client/gui/screens/Overlay;)V"), method = "<init>", index = 0)
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;setOverlay(Lnet/minecraft/client/gui/screens/Overlay;)V"), method = "<init>", index = 0, require = 1)
     public Overlay visor$initRenderStageManager(Overlay overlay) {
         VRRenderState.initVanillaTarget((MainTarget) this.mainRenderTarget);
 
         return overlay;
     }
 
-    @Inject(method = "onGameLoadFinished", at = @At("TAIL"))
+    @Inject(method = "onGameLoadFinished", at = @At("TAIL"), require = 1)
     public void visor$onGameLoadFinish(CallbackInfo ci) {
         VisorState.setMinecraftLoaded(true);
 

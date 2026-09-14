@@ -37,7 +37,7 @@ public abstract class WindowMixin implements WindowExtension {
     // so, we need to override sizes here to avoid issues with tooltips
     // (might be more than just tooltips issues)
 
-    @Inject(method = "getWidth", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getWidth", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrWidth(CallbackInfoReturnable<Integer> cir) {
         if(VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
@@ -58,7 +58,7 @@ public abstract class WindowMixin implements WindowExtension {
         }
     }
 
-    @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrHeight(CallbackInfoReturnable<Integer> cir) {
         if(VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
@@ -80,7 +80,7 @@ public abstract class WindowMixin implements WindowExtension {
     }
 
 
-    @Inject(method = "getScreenWidth", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getScreenWidth", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrScreenWidth(CallbackInfoReturnable<Integer> cir) {
         if (VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
@@ -91,7 +91,7 @@ public abstract class WindowMixin implements WindowExtension {
         }
     }
 
-    @Inject(method = "getScreenHeight", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getScreenHeight", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrScreenHeight(CallbackInfoReturnable<Integer> cir) {
         if (VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
@@ -103,7 +103,7 @@ public abstract class WindowMixin implements WindowExtension {
     }
 
 
-    @Inject(method = "getGuiScaledWidth", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getGuiScaledWidth", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrGuiScaledWidth(CallbackInfoReturnable<Integer> cir) {
         if (VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
@@ -114,7 +114,7 @@ public abstract class WindowMixin implements WindowExtension {
         }
     }
 
-    @Inject(method = "getGuiScaledHeight", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getGuiScaledHeight", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrGuiScaledHeight(CallbackInfoReturnable<Integer> cir) {
         if (VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();
@@ -126,7 +126,7 @@ public abstract class WindowMixin implements WindowExtension {
     }
 
 
-    @Inject(method = "getGuiScale", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getGuiScale", at = @At("HEAD"), cancellable = true, require = 1)
     void visor$vrScaleFactor(CallbackInfoReturnable<Double> cir) {
         if (VisorState.get().isActive()) {
             VROverlayScreen overlay = VROverlayScreen.getRenderingOverlay();

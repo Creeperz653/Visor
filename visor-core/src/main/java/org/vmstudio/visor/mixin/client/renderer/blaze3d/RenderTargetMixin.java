@@ -1,7 +1,8 @@
 package org.vmstudio.visor.mixin.client.renderer.blaze3d;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.TextureUtil;
 import org.vmstudio.visor.extensions.client.render.RenderTargetExtension;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -42,26 +43,26 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
     /* ************************* *\
   //--------STENCIL SUPPORT--------\\
     \* ************************* */
-    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V", remap = false, ordinal = 0), method = "createBuffers", index = 2)
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V", remap = false, ordinal = 0), method = "createBuffers", index = 2, require = 1)
     public int visor$vrUseStencil1(int internalformat) {
         return visor$useStencil
                 ? GL30.GL_DEPTH24_STENCIL8
                 : internalformat;
     }
 
-    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V", remap = false, ordinal = 0), method = "createBuffers", index = 6)
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V", remap = false, ordinal = 0), method = "createBuffers", index = 6, require = 1)
     public int visor$vrUseStencil2(int format) {
         return visor$useStencil
                 ? GL30.GL_DEPTH_STENCIL : format;
     }
 
-    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V", remap = false, ordinal = 0), method = "createBuffers", index = 7)
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V", remap = false, ordinal = 0), method = "createBuffers", index = 7, require = 1)
     public int visor$vrUseStencil3(int type) {
         return visor$useStencil
                 ? GL30.GL_UNSIGNED_INT_24_8 : type;
     }
 
-    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_glFramebufferTexture2D(IIIII)V", remap = false, ordinal = 1), method = "createBuffers", index = 1)
+    @ModifyArg(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlStateManager;_glFramebufferTexture2D(IIIII)V", remap = false, ordinal = 1), method = "createBuffers", index = 1, require = 1)
     public int visor$vrUseStencil4(int attachment) {
         return visor$useStencil
                 ? GL30.GL_DEPTH_STENCIL_ATTACHMENT : attachment;
@@ -71,10 +72,10 @@ public abstract class RenderTargetMixin implements RenderTargetExtension {
     /* ************** *\
   //--------MISC--------\\
     \* ************** */
-    @Redirect(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/TextureUtil;generateTextureId()I", remap = false, ordinal = 0), method = "createBuffers")
-    public int visor$vrTextureId() {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/TextureUtil;generateTextureId()I", remap = false, ordinal = 0), method = "createBuffers", require = 1)
+    public int visor$vrTextureId(Operation<Integer> original) {
         if (this.visor$textureId == -1) {
-            return TextureUtil.generateTextureId();
+            return original.call();
         } else {
             return this.visor$textureId;
         }

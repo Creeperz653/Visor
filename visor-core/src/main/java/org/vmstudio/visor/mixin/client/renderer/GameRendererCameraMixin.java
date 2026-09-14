@@ -1,6 +1,8 @@
 package org.vmstudio.visor.mixin.client.renderer;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
@@ -20,7 +22,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
@@ -32,48 +33,44 @@ public abstract class GameRendererCameraMixin {
     @Shadow @Final
     Minecraft minecraft;
 
-    // ---- Shadow methods ----
-    @Shadow
-    public abstract void pick(float f);
-
 
     /* ***************** *\
   //--------MIXINS--------\\
     \* ***************** */
 
-    @Redirect(method = "<init>", at = @At(value = "NEW", target = "net/minecraft/client/Camera"))
-    public Camera visor$useVRCamera() {
+    @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "net/minecraft/client/Camera"), require = 1)
+    public Camera visor$useVRCamera(Operation<Camera> original) {
         return new VRGameCamera();
     }
 
     //? if >=1.21 {
     // 1.21 builds the frustum from Camera.rotation() instead of its euler angles
-    @Redirect(at = @At(value = "INVOKE",
+    @WrapOperation(at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/Camera;rotation()Lorg/joml/Quaternionf;"),
-            method = "renderLevel")
-    public Quaternionf visor$noVanillaCameraRotation(Camera camera) {
+            method = "renderLevel", require = 1)
+    public Quaternionf visor$noVanillaCameraRotation(Camera camera, Operation<Quaternionf> original) {
         if (VRRenderState.getPhase().isVanilla()) {
-            return camera.rotation();
+            return original.call(camera);
         }
         return new Quaternionf();
     }
     //?} else {
-    /*@Redirect(at = @At(value = "INVOKE",
+    /*@WrapOperation(at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/Camera;getXRot()F"),
-            method = "renderLevel")
-    public float visor$noVanillaCameraPitch(Camera camera) {
+            method = "renderLevel", require = 1)
+    public float visor$noVanillaCameraPitch(Camera camera, Operation<Float> original) {
         if (VRRenderState.getPhase().isVanilla()) {
-            return camera.getXRot();
+            return original.call(camera);
         }
         return 0F;
     }
 
-    @Redirect(at = @At(value = "INVOKE",
+    @WrapOperation(at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/Camera;getYRot()F"),
-            method = "renderLevel")
-    public float visor$noVanillaCameraYaw(Camera camera) {
+            method = "renderLevel", require = 1)
+    public float visor$noVanillaCameraYaw(Camera camera, Operation<Float> original) {
         if (VRRenderState.getPhase().isVanilla()) {
-            return camera.getYRot();
+            return original.call(camera);
         }
         // -180 cancels the +180 vanilla
         return -180F;
@@ -82,7 +79,7 @@ public abstract class GameRendererCameraMixin {
 
     //? if >=1.21 {
     @ModifyExpressionValue(method = "renderLevel",
-            at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotation(Lorg/joml/Quaternionfc;)Lorg/joml/Matrix4f;", remap = false))
+            at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotation(Lorg/joml/Quaternionfc;)Lorg/joml/Matrix4f;", remap = false), require = 1)
     public Matrix4f visor$orientCameraToPass(Matrix4f frustumMatrix) {
         if (VRRenderState.getPhase().isNotVanilla()) {
             RenderPoseHelper.applyCameraOrientation(
@@ -93,7 +90,7 @@ public abstract class GameRendererCameraMixin {
     }
     //?} elif >=1.20.5 {
     /*@ModifyExpressionValue(method = "renderLevel",
-            at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotationXYZ(FFF)Lorg/joml/Matrix4f;", remap = false))
+            at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotationXYZ(FFF)Lorg/joml/Matrix4f;", remap = false), require = 1)
     public Matrix4f visor$orientCameraToPass(Matrix4f frustumMatrix) {
         if (VRRenderState.getPhase().isNotVanilla()) {
             RenderPoseHelper.applyCameraOrientation(
@@ -104,7 +101,7 @@ public abstract class GameRendererCameraMixin {
     }
     *///?} else {
     /*@Inject(at = @At(value = "NEW", target = "org/joml/Matrix3f", remap = false),
-            method = "renderLevel")
+            method = "renderLevel", require = 1)
     public void visor$orientCameraToPass(float partialTicks, long nanos, PoseStack poseStack, CallbackInfo ci) {
         if (VRRenderState.getPhase().isNotVanilla()) {
             RenderPoseHelper.applyCameraOrientation(
@@ -114,14 +111,14 @@ public abstract class GameRendererCameraMixin {
     }
     *///?}
 
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;pick(F)V"), method = "renderLevel")
-    public void visor$pickAndSetupCamera(GameRenderer g, float pPartialTicks) {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;pick(F)V"), method = "renderLevel", require = 1)
+    public void visor$pickAndSetupCamera(GameRenderer g, float pPartialTicks, Operation<Void> original) {
         if (VRRenderState.getPhase().isVanilla()) {
-            g.pick(pPartialTicks);
+            original.call(g, pPartialTicks);
             return;
         }
         if (VRRenderState.getRenderPass() == VRRenderPass.worldUpdater()) {
-            this.pick(pPartialTicks);
+            original.call(g, pPartialTicks);
 
             if(MC.screen == null){
                 TaskTeleport.updateTeleportDestination(MC.player);
@@ -133,7 +130,7 @@ public abstract class GameRendererCameraMixin {
         VRCameraOverlaps.updateCameraOverlaps();
     }
 
-    @Inject(at = @At(value = "TAIL"), method = "renderLevel")
+    @Inject(at = @At(value = "TAIL"), method = "renderLevel", require = 1)
     public void visor$restoreCamera(CallbackInfo i) {
         if(VRRenderState.getPhase().isNotVanilla()) {
             VRCameraEntitySwap.restoreCameraEntity(

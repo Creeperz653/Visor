@@ -74,7 +74,7 @@ public abstract class GameRendererProjectionMixin implements GameRendererExtensi
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "getProjectionMatrix(D)Lorg/joml/Matrix4f;", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "getProjectionMatrix(D)Lorg/joml/Matrix4f;", cancellable = true, require = 1)
     public void visor$projection(double d, CallbackInfoReturnable<Matrix4f> info) {
         if (VisorState.get().isNotActive()) {
             return;
@@ -142,7 +142,7 @@ public abstract class GameRendererProjectionMixin implements GameRendererExtensi
         info.setReturnValue(posestack.last().pose());
     }
 
-    @Inject(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;viewport(IIII)V", remap = false, shift = Shift.AFTER), method = "render")
+    @Inject(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;viewport(IIII)V", remap = false, shift = Shift.AFTER), method = "render", require = 1)
     public void visor$matrix(CallbackInfo info) {
         if(VisorState.get().isNotActive()) return;
         this.resetProjectionMatrix(

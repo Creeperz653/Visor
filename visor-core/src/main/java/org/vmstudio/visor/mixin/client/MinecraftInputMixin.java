@@ -18,7 +18,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-// handleKeybinds in VR: perspective key cycles the mirror mode, mouse stays grabbed, use-key release held while a consume gesture runs
 @Mixin(Minecraft.class)
 public abstract class MinecraftInputMixin {
 

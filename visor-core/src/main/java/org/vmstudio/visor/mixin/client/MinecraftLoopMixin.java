@@ -61,7 +61,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      *
      * @param ci s
      */
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V"), method = "runTick")
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V"), method = "runTick", require = 1)
     public void visor$preTick(CallbackInfo ci) {
         if(ClientContext.visor != null) {
             ClientContext.visor.preTickVR();
@@ -73,7 +73,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      *
      * @param info s
      */
-    @Inject(at = @At("HEAD"), method = "tick()V")
+    @Inject(at = @At("HEAD"), method = "tick()V", require = 1)
     public void visor$tick(CallbackInfo info) {
         if(ClientContext.visor != null) {
             ClientContext.visor.tickVR();
@@ -85,7 +85,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      *
      * @param ci s
      */
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V", shift = Shift.AFTER), method = "runTick")
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V", shift = Shift.AFTER), method = "runTick", require = 1)
     public void visor$postTick(CallbackInfo ci) {
         if(ClientContext.visor != null) {
             ClientContext.visor.postTickVR();
@@ -98,7 +98,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      * @param tick     s
      * @param callback s
      */
-    @Inject(at = @At("HEAD"), method = "runTick(Z)V")
+    @Inject(at = @At("HEAD"), method = "runTick(Z)V", require = 1)
     public void visor$runVR(boolean tick, CallbackInfo callback) {
         VisorState.updateState();
         if(ClientContext.visor != null) {
@@ -107,7 +107,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
         }
     }
 
-    @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=render"))
+    @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=render"), require = 1)
     public void visor$preRenderVR(boolean tick, CallbackInfo callback) {
         if(ClientContext.visor != null) {
             ClientContext.visor
@@ -163,7 +163,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      * @param ci          s
      * @param nanoTime    s
      */
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", ordinal = 4, shift = Shift.AFTER), method = "runTick")
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", ordinal = 4, shift = Shift.AFTER), method = "runTick", require = 1)
     public void visor$renderVR(boolean renderLevel, CallbackInfo ci, @Local(ordinal = 0) long nanoTime) {
         if (ClientContext.visor != null) {
             ClientContext.visor
