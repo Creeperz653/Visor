@@ -5,6 +5,7 @@ import org.vmstudio.visor.api.client.gui.GuiTexture;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.compatibility.aeronautics.AeronauticsHelper;
+import org.vmstudio.visor.compatibility.aeroworks.AeroworksHelper;
 import org.vmstudio.visor.compatibility.create.CreateHelper;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.gui.overlays.builtin.VROverlayFullscreenWarning;
@@ -93,6 +94,7 @@ public class CoreAddonClient implements VisorAddon {
 
         CreateHelper.initializeCompat(this);
         AeronauticsHelper.initializeCompat(this);
+        AeroworksHelper.initializeCompat(this);
     }
 
 
