@@ -10,6 +10,7 @@ public class CreateHelper {
         if (isLoaded()) {
             var registries = VisorAPI.addonManager().getRegistries();
             registries.inputRedirects().registerComponent(new CreateControlsVRInputRedirect(owner));
+            registries.itemPoses().registerComponent(new LinkedControllerItemPose(owner));
         }
     }
 

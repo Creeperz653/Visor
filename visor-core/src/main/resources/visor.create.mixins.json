@@ -8,6 +8,7 @@
     "ControlsHandlerMixin",
     "ControlsUtilMixin",
     "LinkedControllerClientHandlerMixin",
+    "LinkedControllerItemRendererMixin",
     "ValueSettingsScreenMixin"
   ],
   "server": [

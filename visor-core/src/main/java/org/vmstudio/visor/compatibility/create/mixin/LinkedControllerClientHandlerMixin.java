@@ -24,6 +24,17 @@ public class LinkedControllerClientHandlerMixin {
         CreateControlsState.setLinkedControllerActive(true);
     }
 
+    @Inject(
+            method = "tick",
+            at = @At(
+                    value = "RETURN",
+                    ordinal = 0
+            )
+    )
+    private static void visor$onIdleTick(CallbackInfo ci) {
+        CreateControlsState.setLinkedControllerActive(false);
+    }
+
     @Inject(method = "onReset", at = @At("TAIL"))
     private static void visor$onReset(CallbackInfo ci) {
         CreateControlsState.setLinkedControllerActive(false);
