@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import org.vmstudio.visor.api.client.player.VRClientPlayer;
+import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.player.VRClientPlayers;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.extensions.client.entity.EntityRenderDispatcherExtension;
@@ -28,6 +29,9 @@ public class EntityRendererMixin {
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;cameraOrientation()Lorg/joml/Quaternionf;"), method = "renderNameTag")
     public Quaternionf visor$vrNameTagCameraOrient(EntityRenderDispatcher instance,
                                                    Operation<Quaternionf> original, Entity entity) {
+        if(VRRenderState.getPhase().isNotVRWorld()){
+            return original.call(instance);
+        }
         float heightScale = 1.0f;
         VRClientPlayer vrPlayer = VRClientPlayers.getPlayer(entity);
         if (vrPlayer != null) {
