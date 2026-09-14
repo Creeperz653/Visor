@@ -6,7 +6,7 @@ import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 
 public class AeronauticsHelper {
-    public static void initializeCompat(@NotNull VisorAddon owner) {
+    public static void registerComponents(@NotNull VisorAddon owner) {
         if (isLoaded()) {
             var registries = VisorAPI.addonManager().getRegistries();
 

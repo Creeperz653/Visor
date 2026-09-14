@@ -92,9 +92,9 @@ public class CoreAddonClient implements VisorAddon {
                         )
                 );
 
-        CreateHelper.initializeCompat(this);
-        AeronauticsHelper.initializeCompat(this);
-        AeroworksHelper.initializeCompat(this);
+        CreateHelper.registerComponents(this);
+        AeronauticsHelper.registerComponents(this);
+        AeroworksHelper.registerComponents(this);
     }
 
 
