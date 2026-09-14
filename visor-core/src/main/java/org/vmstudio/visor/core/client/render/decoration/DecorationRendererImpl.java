@@ -4,12 +4,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
+import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.vmstudio.visor.api.ModLoader;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.events.render.HandRenderStateVREvent;
 import org.vmstudio.visor.api.client.events.render.RenderPipelineStageVREvent;
+import org.vmstudio.visor.api.client.render.RenderPipelineCallback;
 import org.vmstudio.visor.api.client.render.RenderPipelineStage;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.client.render.decoration.VRDecorationRenderer;
@@ -64,34 +66,39 @@ public class DecorationRendererImpl implements VRDecorationRenderer {
         //REGISTERING RENDERING PIPELINE
         ModLoader.get().addToRenderPipeline(
                 RenderPipelineStage.AFTER_SOLID,
-                (poseStack, partialTicks) -> runLevelStage(() -> {
-                    if (VRRenderState.getPhase().isNotVanilla()) {
-                        renderAfterSolid(poseStack, partialTicks);
-                    }
-                    callStageEvent(RenderPipelineStage.AFTER_SOLID, poseStack, partialTicks);
-                    GLUtils.checkGLError("post AFTER_SOLID events stage");
-                })
+                (poseStack, partialTicks) -> runPipelineStage(
+                        RenderPipelineStage.AFTER_SOLID, this::renderAfterSolid, poseStack, partialTicks
+                )
         );
         ModLoader.get().addToRenderPipeline(
                 RenderPipelineStage.AFTER_TRANSLUCENT,
-                (poseStack, partialTicks) -> runLevelStage(() -> {
-                    if (VRRenderState.getPhase().isNotVanilla()) {
-                        renderAfterTranslucent(poseStack, partialTicks);
-                    }
-                    callStageEvent(RenderPipelineStage.AFTER_TRANSLUCENT, poseStack, partialTicks);
-                    GLUtils.checkGLError("post AFTER_TRANSLUCENT events stage");
-                })
+                (poseStack, partialTicks) -> runPipelineStage(
+                        RenderPipelineStage.AFTER_TRANSLUCENT, this::renderAfterTranslucent, poseStack, partialTicks
+                )
         );
         ModLoader.get().addToRenderPipeline(
                 RenderPipelineStage.AFTER_WORLD,
-                (poseStack, partialTicks) -> runLevelStage(() -> {
-                    if (VRRenderState.getPhase().isNotVanilla()) {
-                        renderAfterWorld(poseStack, partialTicks);
-                    }
-                    callStageEvent(RenderPipelineStage.AFTER_WORLD, poseStack, partialTicks);
-                    GLUtils.checkGLError("post AFTER_WORLD events stage");
-                })
+                (poseStack, partialTicks) -> runPipelineStage(
+                        RenderPipelineStage.AFTER_WORLD, this::renderAfterWorld, poseStack, partialTicks
+                )
         );
+    }
+
+    private void runPipelineStage(RenderPipelineStage stage,
+                                  RenderPipelineCallback visorStage,
+                                  PoseStack poseStack,
+                                  float partialTicks) {
+        if (VRRenderState.getPhase().isVanilla()) {
+            callStageEvent(stage, poseStack, partialTicks);
+            return;
+        }
+        // drain GL errors caused outside VR, probably mods
+        RenderStateHelper.drainExternalGLErrors(stage.name());
+        runLevelStage(() -> {
+            visorStage.render(poseStack, partialTicks);
+            callStageEvent(stage, poseStack, partialTicks);
+            GLUtils.checkGLError("post " + stage.name() + " events stage");
+        });
     }
 
     private void runStage(Runnable stage) {
@@ -134,6 +141,8 @@ public class DecorationRendererImpl implements VRDecorationRenderer {
     public void renderMainMenu(PoseStack poseStack, float partialTicks) {
         if (currentDecorator == null) return;
 
+        // drain GL errors caused outside VR, probably mods
+        RenderStateHelper.drainExternalGLErrors("VR main menu");
         runLevelStage(() -> {
             renderAfterSolid(poseStack, partialTicks);
             callStageEvent(RenderPipelineStage.AFTER_SOLID, poseStack, partialTicks);

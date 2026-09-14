@@ -7,6 +7,7 @@ import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
 import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorClientImpl;
+import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import org.vmstudio.visor.core.client.render.target.RenderTargetHolder;
 import org.vmstudio.visor.core.client.render.target.VRRenderTarget;
 import net.minecraft.client.Minecraft;
@@ -104,6 +105,9 @@ public class RenderTargetGUI implements RenderTargetHolder {
         VRRenderTarget renderTarget = overlayTargets.get(overlayScreen);
         boolean visible = overlayScreen.isVisible();
         if(renderTarget == null && visible){
+            // drain not related GL errors
+            RenderStateHelper.drainExternalGLErrors("VROverlay target " + overlayScreen.getId());
+
             renderTarget = new VRRenderTarget(
                     "Overlay " + overlayScreen.getId(),
                     overlayScreen.getRequestedWidth(),

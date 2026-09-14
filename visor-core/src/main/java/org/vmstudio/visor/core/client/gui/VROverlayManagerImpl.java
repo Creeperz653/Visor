@@ -27,6 +27,7 @@ import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.RenderGuiHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
+import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -161,7 +162,10 @@ public class VROverlayManagerImpl implements VROverlayManager {
                 }
 
                 profiler.pop();
-                GLUtils.checkGLError("post VROverlay texture: "+overlay.getId());
+                //overlays may render screens that are outside of VR scope
+                //therefore to not cause crash because of some silly UI mods,
+                //we should drain these GL errors instead
+                RenderStateHelper.drainExternalGLErrors("VROverlay texture " + overlay.getId());
             }
 
         } finally {

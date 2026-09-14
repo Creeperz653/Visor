@@ -9,6 +9,7 @@ import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.client.render.VRRenderer;
 import org.vmstudio.visor.core.client.render.context.RenderContext;
+import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.VisorClientImpl;
@@ -100,7 +101,8 @@ public abstract class VRRendererBase implements VRRenderer {
     public void onGameRenderStart(boolean renderLevel) {
 
         try {
-            GLUtils.checkGLError("pre render setup ");
+            //drain GL errors caused by other mods
+            RenderStateHelper.drainExternalGLErrors("render setup");
             ClientContext.renderer.updateState();
             GLUtils.checkGLError("post render setup ");
         } catch (Throwable throwable) {
@@ -145,6 +147,7 @@ public abstract class VRRendererBase implements VRRenderer {
 
     @Override
     public void init() throws Throwable {
+        RenderStateHelper.drainExternalGLErrors("VR init");
         try (MemoryStack stack = MemoryStack.stackPush()) {
             setupResolution(stack);
             setupEyes();

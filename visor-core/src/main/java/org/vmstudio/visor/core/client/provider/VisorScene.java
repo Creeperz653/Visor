@@ -20,6 +20,7 @@ import org.vmstudio.visor.core.client.render.VRShaders;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
 import org.vmstudio.visor.core.client.render.helpers.MirrorHelper;
+import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
@@ -69,7 +70,6 @@ public class VisorScene implements AtumVRScene {
                 renderContext.partialTicks()
         );
         profiler.pop();
-        GLUtils.checkGLError("post VR Overlays texturing");
 
         ShaderCompatHelper.bridge().beginFrame(
                 renderContext.partialTicks(),
@@ -180,6 +180,9 @@ public class VisorScene implements AtumVRScene {
                 context.nanoTime(),
                 context.renderLevel()
         );
+        //render game is outside of VR control. many mods might interfere
+        //so, we drain GL errors instead of crash
+        RenderStateHelper.drainExternalGLErrors("VR level render");
 
         if (ShaderCompatHelper.isShaderActive()) {
             MC.mainRenderTarget.bindWrite(true);
