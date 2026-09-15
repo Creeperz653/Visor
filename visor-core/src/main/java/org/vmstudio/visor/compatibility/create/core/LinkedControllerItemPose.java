@@ -1,4 +1,4 @@
-package org.vmstudio.visor.compatibility.aeronautics;
+package org.vmstudio.visor.compatibility.create.core;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -13,10 +13,12 @@ import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.addon.component.ComponentPriority;
 
-public class CreativeStaffItemPose extends VRHandItemPose {
-    private static final String ID = "creative_staff_pose";
+public class LinkedControllerItemPose extends VRHandItemPose {
+    public static final String ID = "create_linked_controller";
 
-    public CreativeStaffItemPose(@NotNull VisorAddon owner) { super(owner); }
+    public LinkedControllerItemPose(@NotNull VisorAddon owner) {
+        super(owner);
+    }
 
     @Override
     public void applyPose(@NotNull PoseStack stack,
@@ -28,13 +30,16 @@ public class CreativeStaffItemPose extends VRHandItemPose {
         VRClientPlayer vrPlayer = VisorAPI.client().getVRPlayer(player.getUUID());
         if (vrPlayer == null) return;
 
-        float scale = 1f;
-        float translateX = 0.0f;
-        float translateY = 0.4f;
-        float translateZ = -0.3f;
+        int handDir = hand == HandType.MAIN ? 1 : -1;
+
+        float scale = 1.0f;
+        float translateX = handDir * -0.1325f;
+        float translateY = -0.2f;
+        float translateZ = 0.1f;
+
         float yaw = -30f;
         float pitch = 0f;
-        float roll =  0f;
+        float roll = 0f;
 
         Quaternionf rotation = new Quaternionf();
         rotation.mul(Axis.ZP.rotationDegrees(roll));
@@ -50,12 +55,16 @@ public class CreativeStaffItemPose extends VRHandItemPose {
     public boolean canApplyPose(@NotNull AbstractClientPlayer player,
                                 @NotNull HandType hand,
                                 @NotNull ItemStack itemStack) {
-        return itemStack.getItem().toString().equals("simulated:creative_physics_staff");
+        return itemStack.getItem().toString().equals("create:linked_controller");
     }
 
     @Override
-    public @NotNull ComponentPriority getPriority() { return ComponentPriority.NORMAL; }
+    public @NotNull ComponentPriority getPriority() {
+        return ComponentPriority.NORMAL;
+    }
 
     @Override
-    public @NotNull String getId() { return ID; }
+    public @NotNull String getId() {
+        return ID;
+    }
 }

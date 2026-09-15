@@ -1,4 +1,4 @@
-package org.vmstudio.visor.compatibility.aeronautics.internal;
+package org.vmstudio.visor.compatibility.create.addons.aeronautics.internal;
 
 import org.joml.Quaterniond;
 import org.vmstudio.visor.api.common.utils.LoggerUtils;

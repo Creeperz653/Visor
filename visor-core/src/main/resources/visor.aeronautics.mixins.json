@@ -1,10 +1,13 @@
 {
   "required": true,
-  "package": "org.vmstudio.visor.compatibility.aeronautics.mixin",
+  "package": "org.vmstudio.visor.compatibility.create.addons.aeronautics.mixin",
   "plugin": "org.vmstudio.visor.MixinConfig",
   "compatibilityLevel": "JAVA_${mixin_compat_level}",
   "refmap": "${mod_id}.refmap.json",
   "client": [
+    "ClientHandleHandlerMixin",
+    "LinkedTypewriterInteractionHandlerMixin",
+    "NameplateScreenMixin",
     "PhysicsStaffClientHandlerMixin",
     "PhysicsStaffItemRendererMixin",
     "PhysicsStaffRenderHandlerMixin"
@@ -13,6 +16,7 @@
   ],
   "minVersion": "0.8.4",
   "mixins": [
+    "HandleConstraintMixin",
     "PhysicsStaffServerHandlerDragSessionMixin"
   ]
 }

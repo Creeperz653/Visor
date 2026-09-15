@@ -1,4 +1,4 @@
-package org.vmstudio.visor.compatibility.aeronautics.mixin;
+package org.vmstudio.visor.compatibility.create.addons.aeronautics.mixin;
 
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
