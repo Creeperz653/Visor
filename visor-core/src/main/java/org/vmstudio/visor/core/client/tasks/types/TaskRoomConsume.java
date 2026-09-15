@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.tasks.types;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McUseAnim;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import org.vmstudio.visor.api.client.input.HapticFeedback;
 import lombok.Getter;
@@ -17,7 +18,6 @@ import net.minecraft.Util;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -82,7 +82,7 @@ public class TaskRoomConsume extends VisorTask {
                 continue;
             }
 
-            int hapticDelay = switch (foodItem.getUseAnimation()) {
+            int hapticDelay = switch (McVersionUtils.useAnimation(foodItem)) {
                 case EAT, DRINK -> HAPTIC_DELAY_EAT_DRINK;
                 case TOOT_HORN -> HAPTIC_DELAY_TOOT_HORN;
                 default -> -1;
@@ -165,9 +165,9 @@ public class TaskRoomConsume extends VisorTask {
         if (item == ItemStack.EMPTY) {
             return false;
         }
-        UseAnim useAnim = item.getUseAnimation();
-        return useAnim == UseAnim.EAT
-                || useAnim == UseAnim.DRINK
-                || useAnim == UseAnim.TOOT_HORN;
+        McUseAnim useAnim = McVersionUtils.useAnimation(item);
+        return useAnim == McUseAnim.EAT
+                || useAnim == McUseAnim.DRINK
+                || useAnim == McUseAnim.TOOT_HORN;
     }
 }

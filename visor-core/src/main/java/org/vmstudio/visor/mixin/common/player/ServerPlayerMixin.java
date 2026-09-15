@@ -1,5 +1,7 @@
 package org.vmstudio.visor.mixin.common.player;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.McUseAnim;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -29,7 +31,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -150,8 +151,20 @@ public abstract class ServerPlayerMixin
         );
     }
 
-    @Inject(at = @At("HEAD"), method = "hurt", cancellable = true)
+    //? if >=1.21.2 {
+    @Inject(at = @At("HEAD"), method = "hurtServer", cancellable = true)
+    public void visor$canGetHurtByPlayer(ServerLevel level, DamageSource damageSource, float f, CallbackInfoReturnable<Boolean> cir) {
+        visor$blockPvpDamage(damageSource, cir);
+    }
+    //?} else {
+    /*@Inject(at = @At("HEAD"), method = "hurt", cancellable = true)
     public void visor$canGetHurtByPlayer(DamageSource damageSource, float f, CallbackInfoReturnable<Boolean> cir) {
+        visor$blockPvpDamage(damageSource, cir);
+    }
+    *///?}
+
+    @Unique
+    private void visor$blockPvpDamage(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
         Entity entity = damageSource.getEntity();
         ServerPlayer damager = null;
 
@@ -265,7 +278,7 @@ public abstract class ServerPlayerMixin
                             : EquipmentSlot.OFFHAND
             );
             if (!visor$isShield(stack)
-                    || player.getCooldowns().isOnCooldown(stack.getItem())) {
+                    || McVersionUtils.isOnCooldown(player, stack)) {
                 continue;
             }
             if (visor$shieldCovers(vrPlayer, hand, threatPos, fromProjectile)) {
@@ -305,7 +318,7 @@ public abstract class ServerPlayerMixin
     private boolean visor$isShield(ItemStack stack) {
         return !stack.isEmpty()
                 && (ItemClassifier.SHIELD.is(stack)
-                || stack.getUseAnimation() == UseAnim.BLOCK);
+                || McVersionUtils.useAnimation(stack) == McUseAnim.BLOCK);
     }
 
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)

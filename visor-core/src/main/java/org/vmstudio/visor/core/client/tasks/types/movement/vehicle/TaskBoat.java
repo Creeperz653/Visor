@@ -1,6 +1,7 @@
 package org.vmstudio.visor.core.client.tasks.types.movement.vehicle;
 
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import lombok.Getter;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.api.client.tasks.RegisterVisorTask;
@@ -11,7 +12,6 @@ import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.core.client.ClientContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.vehicle.Boat;
 import org.jetbrains.annotations.NotNull;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
@@ -91,7 +91,7 @@ public class TaskBoat extends VisorTask {
         if (p == null || !p.isAlive()) return false;
         if (MC.gameMode == null) return false;
         if (Minecraft.getInstance().options.keyUp.isDown()) return false;
-        return p.getVehicle() instanceof Boat;
+        return McVersionUtils.isBoat(p.getVehicle());
     }
 
     public boolean isRowing() {

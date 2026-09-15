@@ -5,7 +5,9 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.extensions.client.MinecraftExtension;
 import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
-import net.minecraft.client.gui.GuiGraphics;
+//? if <1.21.2 {
+/*import net.minecraft.client.gui.GuiGraphics;
+*///?}
 import net.minecraft.client.renderer.GameRenderer;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
@@ -70,12 +72,15 @@ public abstract class GameRendererGuiPhaseMixin implements GameRendererExtension
         return visor$isVRGuiVisible();
     }
 
-    @Inject(at = @At("HEAD"), method = "renderConfusionOverlay", cancellable = true)
+    // 1.21.2 moved it into Gui, see GuiMixin
+    //? if <1.21.2 {
+    /*@Inject(at = @At("HEAD"), method = "renderConfusionOverlay", cancellable = true)
     private void visor$noConfusionOverlayInGUI(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
         if (VRRenderState.getPhase().isVRGui()) {
             ci.cancel();
         }
     }
+    *///?}
 
 
      /* ************************ *\

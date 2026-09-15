@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.provider;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McProjection;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
@@ -7,7 +9,6 @@ import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexSorting;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
 import me.phoenixra.atumvr.api.rendering.AtumVRRenderContext;
@@ -24,7 +25,6 @@ import org.vmstudio.visor.core.client.render.helpers.MirrorHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,7 @@ public class VisorScene implements AtumVRScene {
         var profiler =  renderContext.profiler();
 
         RenderSystem.depthMask(true);
-        RenderSystem.applyModelViewMatrix();
+        McModelViewStack.apply();
 
 
         profiler.push("prepare VROverlays and cursor");
@@ -66,7 +66,7 @@ public class VisorScene implements AtumVRScene {
         profiler.push("VROverlay texturing");
         GuiGraphics guiGraphics = new GuiGraphics(MC, MC.renderBuffers().bufferSource());
         ClientContext.overlayManager.renderOverlayTextures(
-                MC.getProfiler(),
+                McVersionClientUtils.profiler(),
                 guiGraphics,
                 renderContext.partialTicks()
         );
@@ -109,16 +109,15 @@ public class VisorScene implements AtumVRScene {
     private void renderOverlaysAfterPostProcessing(RenderContext context) {
         McModelViewStack.push();
         McModelViewStack.identity();
-        RenderSystem.applyModelViewMatrix();
+        McModelViewStack.apply();
 
-        Matrix4f projection = RenderSystem.getProjectionMatrix();
-        VertexSorting vertexSorting = RenderSystem.getVertexSorting();
+        McProjection.State projection = McProjection.save();
         try{
             ClientContext.decorationRenderer.renderAfterPostProcessing(new PoseStack(), context.partialTicks());
         } finally {
-            RenderSystem.setProjectionMatrix(projection, vertexSorting);
+            McProjection.restore(projection);
             McModelViewStack.pop();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
         }
 
         GLUtils.checkGLError("post VROverlays skipping post processing");
@@ -140,7 +139,7 @@ public class VisorScene implements AtumVRScene {
 
             McRenderTarget.unbindWrite(rendertarget);
             ClientUtils.takeScreenshot(rendertarget);
-            MC.getWindow().updateDisplay();
+            McRenderUtils.updateDisplay(MC.getWindow());
             ClientContext.renderer.setAskedForScreenShot(false);
         }
     }
@@ -164,7 +163,7 @@ public class VisorScene implements AtumVRScene {
 
         McRenderTarget.bindWrite(McRenderTarget.mainTarget());
         RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
-        RenderSystem.clear(16384, Minecraft.ON_OSX);
+        McRenderUtils.clear(16384);
         RenderSystem.enableDepthTest();
 
         ShaderCompatHelper.bridge().beginEye(renderPass.getEyeOrLeft());
@@ -189,10 +188,10 @@ public class VisorScene implements AtumVRScene {
             McRenderTarget.bindWrite(McRenderTarget.mainTarget());
             McModelViewStack.push();
             McModelViewStack.identity();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
             ClientContext.decorationRenderer.renderShaderUi(new PoseStack(), context.partialTicks());
             McModelViewStack.pop();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
         }
 
         if (renderPass.isEye()) {

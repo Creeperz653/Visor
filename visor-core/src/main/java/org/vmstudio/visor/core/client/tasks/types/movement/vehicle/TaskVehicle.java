@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.tasks.types.movement.vehicle;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import org.vmstudio.visor.core.common.CommonUtils;
 import lombok.Getter;
 import org.vmstudio.visor.api.common.player.VRPose;
@@ -20,7 +21,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -235,7 +235,7 @@ public class TaskVehicle extends VisorTask {
         if (player == null) return null;
 
         final Entity entity = player.getVehicle();
-        if (entity instanceof AbstractHorse || entity instanceof Boat) {
+        if (entity instanceof AbstractHorse || McVersionUtils.isBoat(entity)) {
             if (player.zza <= 0) return null;
             return ClientContext.localPlayer
                     .getRotationElement(PlayerPoseType.TICK)

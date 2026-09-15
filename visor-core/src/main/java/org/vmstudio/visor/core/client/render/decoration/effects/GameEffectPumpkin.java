@@ -8,7 +8,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -64,10 +63,9 @@ public class GameEffectPumpkin extends VRGameEffect {
 
         // --- Prepare shader ---
         VRShaders.getPumpkinOverlay().prepare(opacity);
-        ShaderInstance shader = VRShaders.getPumpkinOverlay().getHandle();
 
         // --- GL setup ---
-        RenderSystem.setShader(() -> shader);
+        VRShaders.getPumpkinOverlay().getHandle().use();
         RenderSystem.setShaderTexture(0, PUMPKIN_BLUR_LOCATION);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();

@@ -8,18 +8,31 @@ import com.mojang.math.Axis;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.client.renderer.entity.layers.ElytraLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.world.entity.LivingEntity;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.vmstudio.visor.api.client.player.VRClientPlayer;
 import org.vmstudio.visor.core.client.player.VRClientPlayers;
 import org.vmstudio.visor.core.client.render.player.BackLayerPlacement;
+//? if >=1.21.2 {
+import net.minecraft.client.renderer.entity.layers.WingsLayer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.player.AbstractClientPlayer;
+import org.vmstudio.visor.core.client.render.player.VRPlayerRenderState;
+//?} else {
+/*import net.minecraft.client.renderer.entity.layers.ElytraLayer;
+import net.minecraft.world.entity.LivingEntity;
+*///?}
 
-@Mixin(ElytraLayer.class)
+//? if >=1.21.2 {
+@Mixin(WingsLayer.class)
+public abstract class ElytraLayerMixin<S extends HumanoidRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
+//?} else {
+/*@Mixin(ElytraLayer.class)
 public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
+*///?}
     // ElytraModel.setupAnim drops the wings by this while crouching,
     //VR don't need that, so, cancelled
     @Unique
@@ -34,23 +47,42 @@ public abstract class ElytraLayerMixin<T extends LivingEntity, M extends EntityM
     @Unique
     private final Vector3f visor$offset = new Vector3f();
 
-    public ElytraLayerMixin(RenderLayerParent<T, M> renderer) {
+    //? if >=1.21.2 {
+    public ElytraLayerMixin(RenderLayerParent<S, M> renderer) {
+        super(renderer);
+    }
+
+    @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
+    private void visor$attachElytraToBack(PoseStack instance, float x, float y, float z, Operation<Void> original, @Local(argsOnly = true) HumanoidRenderState state) {
+        AbstractClientPlayer player = VRPlayerRenderState.playerOf(state);
+        var vrPlayer = player == null ? null : VRClientPlayers.getPlayer(player.getUUID());
+        visor$attach(instance, x, y, z, original, vrPlayer, state.isFallFlying, state.isCrouching);
+    }
+    //?} else {
+    /*public ElytraLayerMixin(RenderLayerParent<T, M> renderer) {
         super(renderer);
     }
 
     @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
     private void visor$attachElytraToBack(PoseStack instance, float x, float y, float z, Operation<Void> original, @Local(argsOnly = true) LivingEntity entity) {
         var vrPlayer = VRClientPlayers.getPlayer(entity.getUUID());
-        if (!(getParentModel() instanceof PlayerModel<?> model) || vrPlayer == null) {
+        visor$attach(instance, x, y, z, original, vrPlayer, entity.isFallFlying(), entity.isCrouching());
+    }
+    *///?}
+
+    @Unique
+    private void visor$attach(PoseStack instance, float x, float y, float z, Operation<Void> original,
+                              VRClientPlayer vrPlayer, boolean fallFlying, boolean crouching) {
+        if (!(getParentModel() instanceof PlayerModel model) || vrPlayer == null) {
             original.call(instance, x, y, z);
             return;
         }
 
         visor$placement.aim(model.body, false);
         float verticalNudge = 0F;
-        if (entity.isFallFlying()) {
+        if (fallFlying) {
             verticalNudge = FALL_FLYING_DROP;
-        } else if (entity.isCrouching()) {
+        } else if (crouching) {
             verticalNudge = -VANILLA_CROUCH_WING_DROP;
         }
 

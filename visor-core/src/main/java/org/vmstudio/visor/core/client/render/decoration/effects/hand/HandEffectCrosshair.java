@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.render.decoration.effects.hand;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.joml.*;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
@@ -23,7 +24,6 @@ import org.vmstudio.visor.core.client.utils.ClientUtils;
 import org.vmstudio.visor.core.client.player.VRAimPicker;
 import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -106,7 +106,7 @@ public class HandEffectCrosshair extends VRHandEffect {
         );
 
         RenderSystem.setShaderTexture(0, ICONS_LOC);
-        RenderSystem.setShader(GameRenderer::getRendertypeTextShader);
+        McShaders.use(McShaders.Core.RENDERTYPE_TEXT);
         MC.gameRenderer.lightTexture().turnOnLightLayer();
 
         // --- Pose setup ---

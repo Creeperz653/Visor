@@ -20,7 +20,9 @@ import org.vmstudio.visor.api.common.VRException;
 import org.vmstudio.visor.api.common.network.VisorChannel;
 import org.vmstudio.visor.api.common.network.VisorPayloadToClient;
 import org.vmstudio.visor.api.common.network.VisorPayloadToServer;
-import net.minecraft.client.Minecraft;
+//? if >=1.21 && <1.21.2 {
+/*import net.minecraft.client.Minecraft;
+*///?}
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -29,9 +31,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
+//? if >=1.21.2 {
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
+//?} else {
+/*import net.minecraftforge.client.event.RenderLevelStageEvent;
+*///?}
 import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.MinecraftForge;
+//? if <1.21.2 {
+/*import net.minecraftforge.common.MinecraftForge;
+*///?}
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -61,7 +69,9 @@ public class ForgeModLoader implements ModLoader {
     private final Map<RenderPipelineStage, List<RenderPipelineCallback>> pipelineCallbacks
             = new EnumMap<>(RenderPipelineStage.class);
 
-    private boolean levelStageListenerRegistered = false;
+    //? if <1.21.2 {
+    /*private boolean levelStageListenerRegistered = false;
+    *///?}
 
     //? if >=1.20.5 {
     private final Map<ResourceLocation, EventNetworkChannel> networkChannels = new ConcurrentHashMap<>();
@@ -100,10 +110,12 @@ public class ForgeModLoader implements ModLoader {
                 .computeIfAbsent(stage, k -> new CopyOnWriteArrayList<>())
                 .add(callback);
 
-        if (!levelStageListenerRegistered) {
+        //? if <1.21.2 {
+        /*if (!levelStageListenerRegistered) {
             MinecraftForge.EVENT_BUS.addListener(this::onRenderLevelStage);
             levelStageListenerRegistered = true;
         }
+        *///?}
     }
 
 
@@ -326,32 +338,17 @@ public class ForgeModLoader implements ModLoader {
     }
     //?}
 
-    private void onRenderLevelStage(RenderLevelStageEvent event) {
+    //? if >=1.21.2 {
+    // Forge 53 dropped RenderLevelStageEvent, ForgeLevelRendererStageMixin fires the stages from LevelRenderer
+    public void fireLevelStage(RenderPipelineStage stage) {
+        fireCallbacks(stage, new PoseStack(), McRenderUtils.partialTick());
+    }
+    //?} else {
+    /*private void onRenderLevelStage(RenderLevelStageEvent event) {
         RenderPipelineStage stage = mapForgeStage(event.getStage());
         if (stage == null) return;
-
-        List<RenderPipelineCallback> callbacks = pipelineCallbacks.get(stage);
-        if (callbacks == null || callbacks.isEmpty()) return;
-
-        //? if >=1.20.5 {
-        // Forge 50 hands out the frustum matrix, not a PoseStack: 1.20.5 keeps the view rotation
-        // on the model-view stack, so an identity pose is what Fabric and NeoForge pass too
-        PoseStack poseStack = new PoseStack();
-        //?} else {
-        /*PoseStack poseStack = event.getPoseStack();
-        *///?}
-        //? if >=1.21 {
-
-        float partialTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
-        //?} else {
-        /*float partialTicks = event.getPartialTick();
-        *///?}
-
-        for (RenderPipelineCallback callback : callbacks) {
-            callback.render(poseStack, partialTicks);
-        }
+        fireCallbacks(stage, levelStagePoseStack(event), levelStagePartialTick(event));
     }
-
 
     private static RenderPipelineStage mapForgeStage(RenderLevelStageEvent.Stage forgeStage) {
         // must stay ahead of entity rendering:
@@ -365,5 +362,36 @@ public class ForgeModLoader implements ModLoader {
             return RenderPipelineStage.AFTER_WORLD;
         }
         return null;
+    }
+    *///?}
+
+    //? if >=1.20.5 && <1.21.2 {
+    /*
+    private static PoseStack levelStagePoseStack(RenderLevelStageEvent event) {
+        return new PoseStack();
+    }
+    *///?} elif <1.20.5 {
+    /*private static PoseStack levelStagePoseStack(RenderLevelStageEvent event) {
+        return event.getPoseStack();
+    }
+    *///?}
+
+    //? if >=1.21 && <1.21.2 {
+    /*private static float levelStagePartialTick(RenderLevelStageEvent event) {
+        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+    }
+    *///?} elif <1.21 {
+    /*private static float levelStagePartialTick(RenderLevelStageEvent event) {
+        return event.getPartialTick();
+    }
+    *///?}
+
+    private void fireCallbacks(RenderPipelineStage stage, PoseStack poseStack, float partialTicks) {
+        List<RenderPipelineCallback> callbacks = pipelineCallbacks.get(stage);
+        if (callbacks == null || callbacks.isEmpty()) return;
+
+        for (RenderPipelineCallback callback : callbacks) {
+            callback.render(poseStack, partialTicks);
+        }
     }
 }

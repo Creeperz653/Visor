@@ -1,21 +1,19 @@
 package org.vmstudio.visor.core.client.render.shaders;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.shaders.AbstractUniform;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaderProgram;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.extensions.client.WindowExtension;
 import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
 import org.vmstudio.visor.core.client.render.helpers.MirrorHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderShaderHelper;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ShaderInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -23,30 +21,12 @@ import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class VRShaderMixedReality implements VRShader{
     @Getter
-    private ShaderInstance handle;
-
-
-    private AbstractUniform uHmdViewPosition;
-    private AbstractUniform uHmdPlaneNormal;
-    private AbstractUniform uInverseProjectionView;
-
-    private AbstractUniform uAsGrid2x2;
-    private AbstractUniform uKeyColor;
-    private AbstractUniform uAlphaMode;
+    private McShaderProgram handle;
 
 
     @Override
     public void init() throws Exception {
-        handle = new ShaderInstance(Minecraft.getInstance().getResourceManager(), "vr_mixed_reality", DefaultVertexFormat.POSITION_TEX);
-
-        uAsGrid2x2 = handle.safeGetUniform("uAsGrid2x2");
-        uAlphaMode = handle.safeGetUniform("uAlphaMode");
-
-        uHmdViewPosition = handle.safeGetUniform("uHmdViewPosition");
-        uHmdPlaneNormal = handle.safeGetUniform("uHmdPlaneNormal");
-        uInverseProjectionView = handle.safeGetUniform("uInverseProjectionView");
-        uKeyColor = handle.safeGetUniform("uKeyColor");
-
+        handle = McShaderProgram.core("vr_mixed_reality", DefaultVertexFormat.POSITION_TEX, true);
     }
 
 
@@ -80,23 +60,23 @@ public class VRShaderMixedReality implements VRShader{
         Matrix4f invProjView = new Matrix4f(proj)
                 .mul(cameraRotation)
                 .invert();
-        uInverseProjectionView.set(invProjView);
+        handle.uniform("uInverseProjectionView").set(invProjView);
 
-        uAlphaMode.set(alphaMask ? 1 : 0);
-        uAsGrid2x2.set(asGrid2x2 ? 1 : 0);
+        handle.uniform("uAlphaMode").set(alphaMask ? 1 : 0);
+        handle.uniform("uAsGrid2x2").set(asGrid2x2 ? 1 : 0);
 
-        uHmdViewPosition.set(cameraPos.x, cameraPos.y, cameraPos.z);
-        uHmdPlaneNormal.set(-cameraDir.x(), 0.0F, -cameraDir.z());
+        handle.uniform("uHmdViewPosition").set(cameraPos.x, cameraPos.y, cameraPos.z);
+        handle.uniform("uHmdPlaneNormal").set(-cameraDir.x(), 0.0F, -cameraDir.z());
 
         if (!alphaMask) {
             var color = VRClientSettings.getMixedRealityKeyColor();
-            uKeyColor.set(
+            handle.uniform("uKeyColor").set(
                     color.getRed(),
                     color.getGreen(),
                     color.getBlue()
             );
         } else {
-            uKeyColor.set(0F, 0F, 0F);
+            handle.uniform("uKeyColor").set(0F, 0F, 0F);
         }
 
 
@@ -108,7 +88,7 @@ public class VRShaderMixedReality implements VRShader{
 
         // --- Render ---
         handle.apply();
-        RenderShaderHelper.renderFullscreenQuad(handle.getVertexFormat());
+        RenderShaderHelper.renderFullscreenQuad(handle.vertexFormat());
         handle.clear();
 
         if (asGrid2x2) {

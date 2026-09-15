@@ -1,5 +1,6 @@
 package org.vmstudio.visor.compatibility.replaymod.mixin;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.AlertScreen;
 import net.minecraft.network.chat.Component;
@@ -25,7 +26,7 @@ public class ReplayModReplayMixin {
         cir.setReturnValue(null);
 
         // todo: Component.translatable instead Component.literal
-        Minecraft.getInstance().tell(() -> {
+        McVersionClientUtils.schedule(() -> {
             Minecraft.getInstance().setScreen(new AlertScreen(
                     () -> Minecraft.getInstance().setScreen(null),
                     Component.literal("§cReplay editor is disabled in VR mode or WORLD_ONLY playMode"),

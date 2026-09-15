@@ -5,6 +5,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,6 +14,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 //? if >=1.20.5 {
 import net.minecraft.core.component.DataComponents;
@@ -22,6 +26,15 @@ import net.minecraft.world.item.component.CustomModelData;
 /*import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 *///?}
+//? if <1.21.2 {
+/*import net.minecraft.world.item.Equipable;
+*///?}
+//? if >=1.21.2 {
+import net.minecraft.world.entity.vehicle.AbstractBoat;
+//?} else {
+/*import net.minecraft.world.entity.vehicle.Boat;
+*///?}
+import net.minecraft.world.entity.Entity;
 
 /**
  * Cross-mc-version Utils for common methods
@@ -65,6 +78,39 @@ public class McVersionUtils {
         return EnchantmentHelper.getTridentSpinAttackStrength(stack, user);
         //?} else {
         /*return EnchantmentHelper.getRiptide(stack);
+        *///?}
+    }
+
+    public static McUseAnim useAnimation(ItemStack stack) {
+        return switch (stack.getUseAnimation()) {
+            case NONE -> McUseAnim.NONE;
+            case EAT -> McUseAnim.EAT;
+            case DRINK -> McUseAnim.DRINK;
+            case BLOCK -> McUseAnim.BLOCK;
+            case BOW -> McUseAnim.BOW;
+            case SPEAR -> McUseAnim.SPEAR;
+            case CROSSBOW -> McUseAnim.CROSSBOW;
+            case SPYGLASS -> McUseAnim.SPYGLASS;
+            case TOOT_HORN -> McUseAnim.TOOT_HORN;
+            case BRUSH -> McUseAnim.BRUSH;
+            default -> McUseAnim.CUSTOM;
+        };
+    }
+
+    public static boolean isOnCooldown(Player player, ItemStack stack) {
+        //? if >=1.21.2 {
+        return player.getCooldowns().isOnCooldown(stack);
+        //?} else {
+        /*return player.getCooldowns().isOnCooldown(stack.getItem());
+        *///?}
+    }
+
+    public static boolean shouldSwing(InteractionResult result) {
+        //? if >=1.21.2 {
+        return result instanceof InteractionResult.Success success
+                && success.swingSource() == InteractionResult.SwingSource.CLIENT;
+        //?} else {
+        /*return result.shouldSwing();
         *///?}
     }
 
@@ -131,6 +177,34 @@ public class McVersionUtils {
         *///?}
     }
 
+    public static boolean isBoat(Entity entity) {
+        //? if >=1.21.2 {
+        return entity instanceof AbstractBoat;
+        //?} else {
+        /*return entity instanceof Boat;
+        *///?}
+    }
+
+
+    // ------- BLOCKS -------
+
+    public static boolean isSolidRender(BlockState state, BlockGetter level, BlockPos pos) {
+        //? if >=1.21.2 {
+        return state.isSolidRender();
+        //?} else {
+        /*return state.isSolidRender(level, pos);
+        *///?}
+    }
+
+    // exclusive top like the old getMaxBuildHeight, 1.21.2 replaced it with the inclusive getMaxY
+    public static int maxBuildHeight(LevelHeightAccessor level) {
+        //? if >=1.21.2 {
+        return level.getMaxY() + 1;
+        //?} else {
+        /*return level.getMaxBuildHeight();
+        *///?}
+    }
+
 
     // ------- ITEMS -------
 
@@ -147,6 +221,15 @@ public class McVersionUtils {
         return itemStack.has(DataComponents.CUSTOM_NAME);
         //?} else {
         /*return itemStack.hasCustomHoverName();
+        *///?}
+    }
+
+    // 1.21.2 replaced the Equipable interface with the EQUIPPABLE component
+    public static boolean isEquippable(ItemStack itemStack){
+        //? if >=1.21.2 {
+        return itemStack.has(DataComponents.EQUIPPABLE);
+        //?} else {
+        /*return Equipable.get(itemStack) != null;
         *///?}
     }
 

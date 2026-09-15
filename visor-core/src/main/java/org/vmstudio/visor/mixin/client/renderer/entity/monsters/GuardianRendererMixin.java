@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
@@ -18,11 +19,29 @@ import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 @Mixin(GuardianRenderer.class)
 public abstract class GuardianRendererMixin {
 
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/GuardianRenderer;getPosition(Lnet/minecraft/world/entity/LivingEntity;DF)Lnet/minecraft/world/phys/Vec3;"), method = "render(Lnet/minecraft/world/entity/monster/Guardian;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
+    //? if >=1.21.2 {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/GuardianRenderer;getPosition(Lnet/minecraft/world/entity/LivingEntity;DF)Lnet/minecraft/world/phys/Vec3;"), method = "extractRenderState(Lnet/minecraft/world/entity/monster/Guardian;Lnet/minecraft/client/renderer/entity/state/GuardianRenderState;F)V")
     public Vec3 visor$vrRenderBeam(GuardianRenderer instance,
                                LivingEntity livingEntity,
                                double yOffset,
                                float partialTick, Operation<Vec3> original) {
+        return visor$beamTarget(instance, livingEntity, yOffset, partialTick, original);
+    }
+    //?} else {
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/GuardianRenderer;getPosition(Lnet/minecraft/world/entity/LivingEntity;DF)Lnet/minecraft/world/phys/Vec3;"), method = "render(Lnet/minecraft/world/entity/monster/Guardian;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
+    public Vec3 visor$vrRenderBeam(GuardianRenderer instance,
+                               LivingEntity livingEntity,
+                               double yOffset,
+                               float partialTick, Operation<Vec3> original) {
+        return visor$beamTarget(instance, livingEntity, yOffset, partialTick, original);
+    }
+    *///?}
+
+    @Unique
+    private static Vec3 visor$beamTarget(GuardianRenderer instance,
+                                         LivingEntity livingEntity,
+                                         double yOffset,
+                                         float partialTick, Operation<Vec3> original) {
         if (VRRenderState.getPhase().isVanilla()
                 || livingEntity != MC.getCameraEntity()) {
             return original.call(instance, livingEntity, yOffset, partialTick);

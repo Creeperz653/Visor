@@ -3,8 +3,9 @@ package org.vmstudio.visor.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.mojang.blaze3d.systems.RenderSystem;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.render.VRRenderState;
@@ -13,15 +14,11 @@ import org.vmstudio.visor.core.client.render.context.RenderContext;
 import org.vmstudio.visor.extensions.client.MinecraftExtension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.util.profiling.ProfilerFiller;
 //? if >=1.21 {
 import net.minecraft.client.DeltaTracker;
-//?} else {
-/*import net.minecraft.client.Timer;
- *///?}
-import org.spongepowered.asm.mixin.Final;
+//?}
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -32,23 +29,6 @@ import java.util.function.Consumer;
 // game VR loop
 @Mixin(Minecraft.class)
 public abstract class MinecraftLoopMixin implements MinecraftExtension {
-
-    // ---- Shadow fields ----
-    @Shadow
-    private ProfilerFiller profiler;
-    @Shadow
-    private boolean pause;
-    //? if >=1.21 {
-    @Final
-    @Shadow
-    private DeltaTracker.Timer timer;
-    //?} else {
-    /*@Shadow
-    private float pausePartialTick;
-    @Final
-    @Shadow
-    private Timer timer;
-    *///?}
 
 
     /* ***************** *\
@@ -112,7 +92,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
             ClientContext.visor
                     .preRenderVR(
                             new PreRenderContext(
-                                    profiler, tick,
+                                    McVersionClientUtils.profiler(), tick,
                                     visor$getPartialTicks()
                             )
                     );
@@ -151,24 +131,32 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
             render.accept(level);
         } finally {
             McModelViewStack.pop();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
         }
     }
 
     /**
      * Calls VR rendering after mc rendered
-     *
-     * @param renderLevel s
-     * @param ci          s
-     * @param nanoTime    s
      */
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", ordinal = 4, shift = Shift.AFTER), method = "runTick", require = 1)
+    //? if >=1.21.2 {
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", ordinal = 3, shift = Shift.AFTER), method = "runTick", require = 1)
     public void visor$renderVR(boolean renderLevel, CallbackInfo ci, @Local(ordinal = 0) long nanoTime) {
+        visor$renderVRFrame(renderLevel, nanoTime);
+    }
+    //?} else {
+    /*@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", ordinal = 4, shift = Shift.AFTER), method = "runTick", require = 1)
+    public void visor$renderVR(boolean renderLevel, CallbackInfo ci, @Local(ordinal = 0) long nanoTime) {
+        visor$renderVRFrame(renderLevel, nanoTime);
+    }
+    *///?}
+
+    @Unique
+    private void visor$renderVRFrame(boolean renderLevel, long nanoTime) {
         if (ClientContext.visor != null) {
             ClientContext.visor
                     .renderVR(
                             new RenderContext(
-                                    profiler,
+                                    McVersionClientUtils.profiler(),
                                     renderLevel,
                                     nanoTime,
                                     visor$getPartialTicks()
@@ -214,10 +202,6 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
 
     @Override
     public float visor$getPartialTicks() {
-        //? if >=1.21 {
-        return this.timer.getGameTimeDeltaPartialTick(true);
-        //?} else {
-        /*return pause ? pausePartialTick : this.timer.partialTick;
-        *///?}
+        return McRenderUtils.partialTick();
     }
 }

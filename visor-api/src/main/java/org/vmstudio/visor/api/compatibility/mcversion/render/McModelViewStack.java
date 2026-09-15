@@ -37,4 +37,11 @@ public class McModelViewStack {
     public static void translate(float x, float y, float z) {
         RenderSystem.getModelViewStack().translate(x, y, z);
     }
+
+    // 1.21.2 reads the stack at draw time
+    public static void apply() {
+        //? if <1.21.2 {
+        /*RenderSystem.applyModelViewMatrix();
+        *///?}
+    }
 }

@@ -26,7 +26,11 @@ public class McRenderTarget {
     // ------- SIZE -------
 
     public static void resize(RenderTarget target, int width, int height) {
-        target.resize(width, height, Minecraft.ON_OSX);
+        //? if >=1.21.2 {
+        target.resize(width, height);
+        //?} else {
+        /*target.resize(width, height, Minecraft.ON_OSX);
+        *///?}
     }
 
     public static int viewWidth(RenderTarget target) {
@@ -54,7 +58,11 @@ public class McRenderTarget {
     // ------- CLEARING -------
 
     public static void clear(RenderTarget target) {
-        target.clear(Minecraft.ON_OSX);
+        //? if >=1.21.2 {
+        target.clear();
+        //?} else {
+        /*target.clear(Minecraft.ON_OSX);
+        *///?}
     }
 
     public static void setClearColor(RenderTarget target, float red, float green, float blue, float alpha) {

@@ -1,5 +1,8 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McProjection;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
@@ -8,7 +11,6 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import me.phoenixra.atumvr.api.enums.EyeType;
-import net.minecraft.client.renderer.ShaderInstance;
 import org.vmstudio.visor.api.client.gui.helpers.TexturesHelper;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
@@ -16,8 +18,6 @@ import org.vmstudio.visor.compatibility.immportals.ImmPortalsCompatHelper;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.VRRendererBase;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
@@ -53,7 +53,7 @@ public class RenderEffectsHelper {
         McVertexBuilder bufferbuilder = McVertexBuilder.get();
         Matrix4f mat = fullscreenMatrix();
 
-        RenderSystem.setShader(GameRenderer::getPositionShader);
+        McShaders.use(McShaders.Core.POSITION);
         RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, alpha);
         RenderSystem.depthFunc(GL11C.GL_ALWAYS);
         RenderSystem.depthMask(false);
@@ -78,12 +78,11 @@ public class RenderEffectsHelper {
         VRShaderInBlockVignette wrap = VRShaders.getInBlockVignette();
         if (wrap == null) return;
         wrap.prepare(proximity);
-        ShaderInstance shader = wrap.getHandle();
 
         McVertexBuilder bufferbuilder = McVertexBuilder.get();
         Matrix4f mat = fullscreenMatrix();
 
-        RenderSystem.setShader(() -> shader);
+        wrap.getHandle().use();
         RenderSystem.depthFunc(GL11C.GL_ALWAYS);
         RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
@@ -142,13 +141,13 @@ public class RenderEffectsHelper {
             beginStencilWrite();
             Matrix4f ortho = new Matrix4f()
                     .setOrtho(0, McRenderTarget.viewWidth(target), 0, McRenderTarget.viewHeight(target), 0, MASK_FAR_PLANE);
-            RenderSystem.setProjectionMatrix(ortho, VertexSorting.ORTHOGRAPHIC_Z);
-            RenderSystem.applyModelViewMatrix();
+            McProjection.setOrthographic(ortho);
+            McModelViewStack.apply();
 
             drawMaskTriangles(mask);
         } finally {
             McModelViewStack.pop();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
             RenderSystem.restoreProjectionMatrix();
 
             endStencilWrite();
@@ -165,7 +164,7 @@ public class RenderEffectsHelper {
         RenderSystem.clearStencil(0);
         RenderSystem.clearDepth(1);
         RenderSystem.colorMask(true, true, true, true);
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT, false);
+        McRenderUtils.clear(GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT);
 
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
@@ -193,10 +192,8 @@ public class RenderEffectsHelper {
     }
 
     private static void drawMaskTriangles(float[] verts) {
-        Minecraft.getInstance()
-                .getTextureManager()
-                .bindForSetup(TexturesHelper.getBlackTexture());
-        RenderSystem.setShader(GameRenderer::getPositionShader);
+        McRenderUtils.setShaderTexture(0, TexturesHelper.getBlackTexture());
+        McShaders.use(McShaders.Core.POSITION);
 
         McVertexBuilder buf = McVertexBuilder.get();
         buf.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION);

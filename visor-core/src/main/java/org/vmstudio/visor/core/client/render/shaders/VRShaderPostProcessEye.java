@@ -1,17 +1,15 @@
 package org.vmstudio.visor.core.client.render.shaders;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.shaders.AbstractUniform;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
 import me.phoenixra.atumvr.api.utils.GLUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaderProgram;
 import org.vmstudio.visor.core.client.render.helpers.RenderShaderHelper;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.util.Mth;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
@@ -19,26 +17,14 @@ import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class VRShaderPostProcessEye implements VRShader{
     @Getter
-    private ShaderInstance handle;
-
-    private AbstractUniform uTintRed;
-    private AbstractUniform uTintBlue;
-    private AbstractUniform uTintBlack;
-
-    private AbstractUniform uDesaturate;
+    private McShaderProgram handle;
 
     private float desaturateProgress;
     private long desaturateLastMillis;
 
     @Override
     public void init() throws Exception {
-        handle = new ShaderInstance(Minecraft.getInstance().getResourceManager(), "vr_post_process_eye", DefaultVertexFormat.POSITION_TEX);
-
-        uTintRed = handle.safeGetUniform("uTintRed");
-        uTintBlue = handle.safeGetUniform("uTintBlue");
-        uTintBlack = handle.safeGetUniform("uTintBlack");
-
-        uDesaturate = handle.safeGetUniform("uDesaturate");
+        handle = McShaderProgram.core("vr_post_process_eye", DefaultVertexFormat.POSITION_TEX, false);
     }
 
 
@@ -114,12 +100,12 @@ public class VRShaderPostProcessEye implements VRShader{
         // --- Finalize ---
 
         //tints
-        uTintRed.set(redTint);
-        uTintBlue.set(blueTint);
-        uTintBlack.set(blackTint);
-      
+        handle.uniform("uTintRed").set(redTint);
+        handle.uniform("uTintBlue").set(blueTint);
+        handle.uniform("uTintBlack").set(blackTint);
+
         //drain the colors while the client in fullscreen
-        uDesaturate.set(updateDesaturation());
+        handle.uniform("uDesaturate").set(updateDesaturation());
     }
 
     private float updateDesaturation() {

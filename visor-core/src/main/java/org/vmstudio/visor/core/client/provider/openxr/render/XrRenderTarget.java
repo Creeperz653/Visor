@@ -18,8 +18,23 @@ public class XrRenderTarget extends RenderTarget {
 
     }
 
+    //? if >=1.21.2 {
     @Override
+    public void createBuffers(int width, int height) {
+        attachEyeTexture(width, height);
+        this.clear();
+        this.unbindRead();
+    }
+    //?} else {
+    /*@Override
     public void createBuffers(int width, int height, boolean getError) {
+        attachEyeTexture(width, height);
+        this.clear(getError);
+        this.unbindRead();
+    }
+    *///?}
+
+    private void attachEyeTexture(int width, int height) {
         RenderSystem.assertOnRenderThreadOrInit();
         int maxSize = RenderSystem.maxSupportedTextureSize();
         if (width > 0 && width <= maxSize && height > 0 && height <= maxSize) {
@@ -41,8 +56,6 @@ public class XrRenderTarget extends RenderTarget {
 
 
             this.checkStatus();
-            this.clear(getError);
-            this.unbindRead();
         } else {
             throw new IllegalArgumentException("Window " + width + "x" + height + " size out of bounds (max. size: " + maxSize + ")");
         }

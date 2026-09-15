@@ -32,8 +32,40 @@ public abstract class FishingHookMixin extends Entity {
     @Unique
     private Vec3 visor$savedHandPos = null;
 
-    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V", ordinal = 0)
+    //? if >=1.21.2 {
+    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;IILnet/minecraft/world/item/ItemStack;)V", ordinal = 0)
     private float visor$vrRotationX(float xRot, Player player) {
+        return visor$handPitch(xRot, player);
+    }
+
+    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;IILnet/minecraft/world/item/ItemStack;)V", ordinal = 1)
+    private float visor$vrRotationY(float yRot) {
+        return visor$handYaw(yRot);
+    }
+
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/FishingHook;moveTo(DDDFF)V"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;IILnet/minecraft/world/item/ItemStack;)V")
+    private void visor$vrMoveTo(FishingHook instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original) {
+        visor$moveToRodTip(instance, x, y, z, yRot, xRot, original);
+    }
+    //?} else {
+    /*@ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V", ordinal = 0)
+    private float visor$vrRotationX(float xRot, Player player) {
+        return visor$handPitch(xRot, player);
+    }
+
+    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V", ordinal = 1)
+    private float visor$vrRotationY(float yRot) {
+        return visor$handYaw(yRot);
+    }
+
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/FishingHook;moveTo(DDDFF)V"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V")
+    private void visor$vrMoveTo(FishingHook instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original) {
+        visor$moveToRodTip(instance, x, y, z, yRot, xRot, original);
+    }
+    *///?}
+
+    @Unique
+    private float visor$handPitch(float xRot, Player player) {
         visor$vrPlayer = null;
         // some mods mess with this
         if (!(player instanceof ServerPlayer serverPlayer)) {
@@ -51,16 +83,16 @@ public abstract class FishingHookMixin extends Entity {
         return CommonUtils.pitchFromDirection(visor$savedHandDir);
     }
 
-    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V", ordinal = 1)
-    private float visor$vrRotationY(float yRot) {
+    @Unique
+    private float visor$handYaw(float yRot) {
         if (visor$vrPlayer == null) {
             return yRot;
         }
         return CommonUtils.yawFromDirection(visor$savedHandDir);
     }
 
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/FishingHook;moveTo(DDDFF)V"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V")
-    private void visor$vrMoveTo(FishingHook instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original) {
+    @Unique
+    private void visor$moveToRodTip(FishingHook instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original) {
         if (visor$vrPlayer == null) {
             original.call(instance, x, y, z, yRot, xRot);
             return;

@@ -40,10 +40,17 @@ public class MultiCameraRenderTarget extends RenderTarget {
         return target != null ? target : mainTarget;
     }
 
+    //? if >=1.21.2 {
     @Override
+    public void resize(int width, int height) {
+        getCurrentTarget().resize(width, height);
+    }
+    //?} else {
+    /*@Override
     public void resize(int width, int height, boolean clearError) {
         getCurrentTarget().resize(width, height, clearError);
     }
+    *///?}
 
     @Override
     public void destroyBuffers() {
@@ -56,10 +63,17 @@ public class MultiCameraRenderTarget extends RenderTarget {
         getCurrentTarget().copyDepthFrom(other);
     }
 
+    //? if >=1.21.2 {
     @Override
+    public void createBuffers(int width, int height) {
+        getCurrentTarget().createBuffers(width, height);
+    }
+    //?} else {
+    /*@Override
     public void createBuffers(int width, int height, boolean clearError) {
         getCurrentTarget().createBuffers(width, height, clearError);
     }
+    *///?}
 
     @Override
     public void setFilterMode(int filterMode) {
@@ -101,7 +115,18 @@ public class MultiCameraRenderTarget extends RenderTarget {
         getCurrentTarget().blitToScreen(width, height);
     }
 
+    //? if >=1.21.2 {
     @Override
+    public void blitAndBlendToScreen(int width, int height) {
+        getCurrentTarget().blitAndBlendToScreen(width, height);
+    }
+
+    @Override
+    public void clear() {
+        getCurrentTarget().clear();
+    }
+    //?} else {
+    /*@Override
     public void blitToScreen(int width, int height, boolean disableBlend) {
         getCurrentTarget().blitToScreen(width, height, disableBlend);
     }
@@ -110,6 +135,7 @@ public class MultiCameraRenderTarget extends RenderTarget {
     public void clear(boolean clearError) {
         getCurrentTarget().clear(clearError);
     }
+    *///?}
 
     @Override
     public int getColorTextureId() {

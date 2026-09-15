@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.gui.overlays.builtin.settings;
 
+import org.vmstudio.visor.api.compatibility.mcversion.gui.McGuiUtils;
 import lombok.Getter;
 import lombok.Setter;
 import me.phoenixra.atumvr.api.misc.color.AtumColor;
@@ -192,14 +193,17 @@ public class VROverlaySettings extends VROverlayScreen
     @Override
     public void onPreRender(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float partialTicks) {
         //MAIN BACKGROUND
-        guiGraphics.blit(
+        McGuiUtils.blit(
+                guiGraphics,
                 settingsTab.background(),
                 menuBoundsX, menuBoundsY,
                 0, 0,
+                256, 256,
                 256, 256
         );
         //EXTRA BACKGROUND
-        guiGraphics.blit(
+        McGuiUtils.blit(
+                guiGraphics,
                 settingsTab.backgroundExtra(this),
                 menuBoundsX + 230, menuBoundsY + 6,
                 0, 0,

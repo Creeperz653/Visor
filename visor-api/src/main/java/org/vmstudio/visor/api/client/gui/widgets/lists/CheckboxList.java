@@ -313,12 +313,12 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
     }
 
     @Override
-    protected int getRowTop(int index) {
+    public int getRowTop(int index) {
         return listTop() + paddingTop - (int)this.getScrollAmount() + index * this.itemHeight + this.headerHeight;
     }
 
     @Override
-    protected int getRowBottom(int index) {
+    public int getRowBottom(int index) {
         return super.getRowBottom(index) - paddingTop;
     }
 

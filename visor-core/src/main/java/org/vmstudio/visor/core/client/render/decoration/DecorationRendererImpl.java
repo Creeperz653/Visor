@@ -1,6 +1,5 @@
 package org.vmstudio.visor.core.client.render.decoration;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
@@ -111,12 +110,12 @@ public class DecorationRendererImpl implements VRDecorationRenderer {
         MC.renderBuffers().bufferSource().endBatch();
         McModelViewStack.push();
         McModelViewStack.identity();
-        RenderSystem.applyModelViewMatrix();
+        McModelViewStack.apply();
         try {
             stage.run();
         } finally {
             McModelViewStack.pop();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
         }
         //?} else {
         /*stage.run();

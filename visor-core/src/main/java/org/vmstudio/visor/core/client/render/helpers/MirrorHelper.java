@@ -1,5 +1,8 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McProjection;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McFog;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
@@ -11,7 +14,6 @@ import org.vmstudio.visor.extensions.client.WindowExtension;
 import org.vmstudio.visor.core.client.render.VRShaders;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
 
@@ -165,19 +167,19 @@ public class MirrorHelper {
         RenderSystem.backupProjectionMatrix();
         RenderSystem.viewport(0, 0, vrWidth, vrHeight);
         var proj = new Matrix4f().setOrtho(0, vrWidth, vrHeight, 0, NEAR_PLANE, FAR_PLANE);
-        RenderSystem.setProjectionMatrix(proj, VertexSorting.ORTHOGRAPHIC_Z);
+        McProjection.setOrthographic(proj);
 
         // 3) push / configure model-view
         McModelViewStack.push();
         try {
             McModelViewStack.identity();
             McModelViewStack.translate(0, 0, -CAMERA_Z);
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
 
             // 4) disable fog + clear
-            RenderSystem.setShaderFogStart(Float.MAX_VALUE);
+            McFog.disable();
             int flags = CLEAR_DEPTH_FLAG | (clearBackground ? CLEAR_COLOR_FLAG : 0);
-            RenderSystem.clear(flags, Minecraft.ON_OSX);
+            McRenderUtils.clear(flags);
             if (clearBackground) {
                 RenderSystem.clearColor(0, 0, 0, 0);
             }
@@ -201,7 +203,7 @@ public class MirrorHelper {
             gui.flush();
         } finally {
             McModelViewStack.pop();
-            RenderSystem.applyModelViewMatrix();
+            McModelViewStack.apply();
             RenderSystem.restoreProjectionMatrix();
             RenderStateHelper.restoreAfterExternalRender();
         }

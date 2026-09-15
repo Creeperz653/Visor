@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McFog;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
@@ -8,7 +10,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import me.phoenixra.atumvr.api.misc.color.AtumColor;
-import net.minecraft.client.renderer.GameRenderer;
 import org.vmstudio.visor.api.client.player.pose.VRPlayerPoseClient;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
@@ -60,7 +61,7 @@ public class RenderGuiHelper {
         );
         scale = scale * renderPose.getWorldScale();
 
-        float fogStartCache = RenderSystem.getShaderFogStart();
+        McFog.State fogState = McFog.save();
         var color = AtumColor.WHITE.asMutable();
 
         boolean dragging = overlay.isBeingDragged();
@@ -81,7 +82,7 @@ public class RenderGuiHelper {
         RenderSystem.enableBlend();
         if (VRRenderState.getSceneType().isWorld()) {
             // keep fog away from the overlay, and let its alpha accumulate
-            RenderSystem.setShaderFogStart(Float.MAX_VALUE);
+            McFog.disable();
             RenderSystem.blendFuncSeparate(
                     GlStateManager.SourceFactor.SRC_ALPHA,
                     GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
@@ -140,7 +141,7 @@ public class RenderGuiHelper {
         }
 
         // --- Restore ---
-        RenderSystem.setShaderFogStart(fogStartCache);
+        McFog.restore(fogState);
         RenderSystem.depthFunc(GL11C.GL_LEQUAL);
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
@@ -220,12 +221,12 @@ public class RenderGuiHelper {
 
     private static void beginFlatQuads(McVertexBuilder buf, int packedLight) {
         if (packedLight >= 0) {
-            RenderSystem.setShader(GameRenderer::getRendertypeTextShader);
+            McShaders.use(McShaders.Core.RENDERTYPE_TEXT);
             RenderSystem.setShaderTexture(0, TexturesHelper.getWhiteTexture());
             MC.gameRenderer.lightTexture().turnOnLightLayer();
             buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
         } else {
-            RenderSystem.setShader(GameRenderer::getPositionColorShader);
+            McShaders.use(McShaders.Core.POSITION_COLOR);
             buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         }
     }

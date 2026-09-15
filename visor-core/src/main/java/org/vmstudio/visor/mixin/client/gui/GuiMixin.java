@@ -20,6 +20,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//? if >=1.21.2 {
+import org.vmstudio.visor.core.client.render.VRRenderState;
+//?}
 
 
 @Mixin(Gui.class)
@@ -138,6 +141,15 @@ public abstract class GuiMixin implements GuiExtension {
         if(VisorState.get().isNotActive()) return;
         ci.cancel();
     }
+
+    //? if >=1.21.2 {
+    @Inject(method = "renderConfusionOverlay", at = @At("HEAD"), cancellable = true)
+    private void visor$noConfusionOverlayInGUI(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
+        if (VRRenderState.getPhase().isVRGui()) {
+            ci.cancel();
+        }
+    }
+    //?}
 
     @Inject(at = @At("HEAD"), method = "renderCrosshair", cancellable = true)
     public void visor$noCrosshair(CallbackInfo ci) {

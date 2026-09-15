@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.render.decoration.effects;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -20,7 +21,6 @@ import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.RenderHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import org.vmstudio.visor.api.client.gui.helpers.TexturesHelper;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +79,7 @@ public class GameEffectShadow extends VRGameEffect {
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11C.GL_ALWAYS);
 
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        McShaders.use(McShaders.Core.POSITION_COLOR);
         RenderSystem.setShaderTexture(0, TexturesHelper.getWhiteTexture());
 
 

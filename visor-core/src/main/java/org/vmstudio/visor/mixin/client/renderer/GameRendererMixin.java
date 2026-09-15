@@ -41,10 +41,17 @@ public abstract class GameRendererMixin {
     // ---- Shadow fields ----
     @Shadow @Final
     Minecraft minecraft;
+    //? if >=1.21.2 {
     @Shadow
+    private float fovModifier;
+    @Shadow
+    private float oldFovModifier;
+    //?} else {
+    /*@Shadow
     private float fov;
     @Shadow
     private float oldFov;
+    *///?}
     @Shadow
     private long lastActiveTime;
     @Shadow
@@ -185,8 +192,13 @@ public abstract class GameRendererMixin {
         if(VRRenderState.getPhase().isNotVanilla()) {
             // vanilla tickFov starts from when the view is not modified
             final float neutralFovModifier = 1.0F;
-            this.fov = neutralFovModifier;
+            //? if >=1.21.2 {
+            this.fovModifier = neutralFovModifier;
+            this.oldFovModifier = neutralFovModifier;
+            //?} else {
+            /*this.fov = neutralFovModifier;
             this.oldFov = neutralFovModifier;
+            *///?}
             ci.cancel();
         }
     }

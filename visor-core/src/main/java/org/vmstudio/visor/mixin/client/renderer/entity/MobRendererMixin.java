@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.common.HandType;
@@ -24,8 +25,21 @@ import org.vmstudio.visor.core.client.render.VRRenderState;
 /*@Mixin(MobRenderer.class)
 *///?}
 public class MobRendererMixin {
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getRopeHoldPosition(F)Lnet/minecraft/world/phys/Vec3;"), method = "renderLeash")
+    // 1.21.2 resolves the leash ends while extracting the render state
+    //? if >=1.21.2 {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getRopeHoldPosition(F)Lnet/minecraft/world/phys/Vec3;"), method = "extractRenderState")
     public Vec3 visor$vrRenderLeash(Entity instance, float partialTick, Operation<Vec3> original) {
+        return visor$leashHoldPosition(instance, partialTick, original);
+    }
+    //?} else {
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getRopeHoldPosition(F)Lnet/minecraft/world/phys/Vec3;"), method = "renderLeash")
+    public Vec3 visor$vrRenderLeash(Entity instance, float partialTick, Operation<Vec3> original) {
+        return visor$leashHoldPosition(instance, partialTick, original);
+    }
+    *///?}
+
+    @Unique
+    private static Vec3 visor$leashHoldPosition(Entity instance, float partialTick, Operation<Vec3> original) {
         if (VRRenderState.getPhase().isNotVRWorld()) {
             return original.call(instance, partialTick);
         }

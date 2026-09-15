@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.gui.screens;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 import org.vmstudio.visor.core.client.exceptions.VisorException;
 import org.vmstudio.visor.api.common.utils.LoggerUtils;
 import net.minecraft.Util;
@@ -100,7 +101,7 @@ public class VRErrorReportScreen extends McScreen {
                 ? vx.getTitle()
                 : Component.translatable("visor.messages.error.generic");
 
-        Minecraft.getInstance().tell(() ->
+        McVersionClientUtils.schedule(() ->
                 Minecraft.getInstance().setScreen(new VRErrorReportScreen(title, t))
         );
     }

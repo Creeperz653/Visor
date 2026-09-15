@@ -1,21 +1,17 @@
 package org.vmstudio.visor.mixin.client.renderer;
 
-import com.google.gson.JsonSyntaxException;
+import net.minecraft.client.renderer.PostChain;
+import org.spongepowered.asm.mixin.Mixin;
+//? if <1.21.2 {
+/*import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.target.MultiCameraRenderTarget;
-import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
-//? if >=1.20.5 {
-import net.minecraft.server.packs.resources.ResourceProvider;
-//?} else {
-/*import net.minecraft.server.packs.resources.ResourceManager;
-*///?}
 import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,32 +21,33 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.IOException;
 import java.util.EnumMap;
+*///?}
+//? if >=1.20.5 && <1.21.2 {
+/*import net.minecraft.server.packs.resources.ResourceProvider;
+*///?} elif <1.20.5 {
+/*import net.minecraft.server.packs.resources.ResourceManager;
+*///?}
+
 
 @Mixin(PostChain.class)
 public class PostChainMixin {
 
-    @Shadow
+    //? if <1.21.2 {
+    /*@Shadow
     @Final
     private RenderTarget screenTarget;
 
     @Unique @Final
     private final EnumMap<VRRenderPass, PostChain> visor$vrPostChains = new EnumMap<>(VRRenderPass.class);
+    *///?}
 
-
-    @Inject(method = "<init>", at = @At(value = "TAIL"))
-    //? if >=1.20.5 {
+    //? if >=1.20.5 && <1.21.2 {
+    /*@Inject(method = "<init>", at = @At(value = "TAIL"))
     private void visor$onInit(TextureManager textureManager,
                               ResourceProvider resourceProvider,
                               RenderTarget screenTarget,
                               ResourceLocation name,
                               CallbackInfo ci) throws IOException, JsonSyntaxException {
-    //?} else {
-    /*private void visor$onInit(TextureManager textureManager,
-                              ResourceManager resourceProvider,
-                              RenderTarget screenTarget,
-                              ResourceLocation name,
-                              CallbackInfo ci) throws IOException, JsonSyntaxException {
-    *///?}
 
         if (VisorState.get().isNotInitialized()
                 || this.screenTarget != VRRenderState.getVanillaTarget()){
@@ -71,8 +68,37 @@ public class PostChainMixin {
             );
         }
     }
+    *///?} elif <1.20.5 {
+    /*@Inject(method = "<init>", at = @At(value = "TAIL"))
+    private void visor$onInit(TextureManager textureManager,
+                              ResourceManager resourceProvider,
+                              RenderTarget screenTarget,
+                              ResourceLocation name,
+                              CallbackInfo ci) throws IOException, JsonSyntaxException {
 
-    @Inject(method = "process", at = @At(value = "HEAD"), cancellable = true)
+        if (VisorState.get().isNotInitialized()
+                || this.screenTarget != VRRenderState.getVanillaTarget()){
+            return;
+        }
+        for (VRRenderPass renderPass : VRRenderPass.values()) {
+            if(renderPass.isNull()) continue;
+
+            var target = VRRenderState.getTargetForPass(renderPass);
+            if(target == null) continue;
+            visor$vrPostChains.put(renderPass,
+                    new PostChain(
+                            textureManager,
+                            resourceProvider,
+                            target,
+                            name
+                    )
+            );
+        }
+    }
+    *///?}
+
+    //? if <1.21.2 {
+    /*@Inject(method = "process", at = @At(value = "HEAD"), cancellable = true)
     private void visor$processVRChains(float partialTicks, CallbackInfo ci) {
         if(VRRenderState.getPhase().isNotVRWorld()){
             return;
@@ -121,5 +147,6 @@ public class PostChainMixin {
             pc.resize(target.width, target.height);
         });
     }
+    *///?}
 
 }

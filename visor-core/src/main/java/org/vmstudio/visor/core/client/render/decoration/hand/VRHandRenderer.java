@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render.decoration.hand;
 
+import net.minecraft.world.level.lighting.LightEngine;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -8,7 +10,9 @@ import com.mojang.math.Axis;
 import lombok.Getter;
 import lombok.Setter;
 import me.phoenixra.atumvr.api.misc.color.AtumColorImmutable;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+//? if >=1.21.2 {
+import net.minecraft.world.entity.player.PlayerModelPart;
+//?}
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.MapItem;
@@ -37,7 +41,6 @@ import org.vmstudio.visor.api.client.gui.helpers.TexturesHelper;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.gui.VRCursorHandlerImpl;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -215,7 +218,7 @@ public class VRHandRenderer {
 
         RenderSystem.restoreProjectionMatrix();
     }
-    public void renderSpectatedHands(@NotNull PlayerRenderer renderer,
+    public void renderSpectatedHands(@NotNull Vec3 renderOffset,
                                      @NotNull AbstractClientPlayer player,
                                      @NotNull VRClientPlayer vrPlayer,
                                      @NotNull PoseStack poseStack,
@@ -224,11 +227,10 @@ public class VRHandRenderer {
                                      float partialTicks) {
         var renderPose = vrPlayer.getPoseData(PlayerPoseType.RENDER);
 
-        Vec3 offset = renderer.getRenderOffset(player, partialTicks);
         Vector3f referenceOrigin = new Vector3f(
-                (float) (Mth.lerp(partialTicks, player.xOld, player.getX()) + offset.x),
-                (float) (Mth.lerp(partialTicks, player.yOld, player.getY()) + offset.y),
-                (float) (Mth.lerp(partialTicks, player.zOld, player.getZ()) + offset.z)
+                (float) (Mth.lerp(partialTicks, player.xOld, player.getX()) + renderOffset.x),
+                (float) (Mth.lerp(partialTicks, player.yOld, player.getY()) + renderOffset.y),
+                (float) (Mth.lerp(partialTicks, player.zOld, player.getZ()) + renderOffset.z)
         );
 
         for (HandType hand : HandType.values()) {
@@ -314,12 +316,11 @@ public class VRHandRenderer {
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11C.GL_ALWAYS);
         RenderSystem.depthMask(false);
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        McShaders.use(McShaders.Core.POSITION_COLOR);
 
         if (MC.getOverlay() == null) {
             var whiteTex = TexturesHelper.getWhiteTexture();
-            MC.getTextureManager().bindForSetup(whiteTex);
-            RenderSystem.setShaderTexture(0, whiteTex);
+            McRenderUtils.setShaderTexture(0, whiteTex);
         }
 
         // --- Render ---
@@ -370,8 +371,7 @@ public class VRHandRenderer {
 
     private void renderGuiHand(PoseStack poseStack) {
         var whiteTex = TexturesHelper.getWhiteTexture();
-        MC.getTextureManager().bindForSetup(whiteTex);
-        RenderSystem.setShaderTexture(0, whiteTex);
+        McRenderUtils.setShaderTexture(0, whiteTex);
 
         RenderSystem.depthFunc(GL11C.GL_ALWAYS);
         RenderSystem.depthMask(false);
@@ -382,7 +382,7 @@ public class VRHandRenderer {
 
         AtumColorImmutable color = dimByLocalLight(GUI_HANDS_COLOR);
 
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        McShaders.use(McShaders.Core.POSITION_COLOR);
         RenderHelper.renderCuboid(
                 McVertexBuilder.get(),
                 poseStack.last().pose(),
@@ -403,7 +403,7 @@ public class VRHandRenderer {
                 .getPoseData(PlayerPoseType.RENDER).getHmd().getPosition());
         float light = MC.level.getMaxLocalRawBrightness(BlockPos.containing(headPos));
         light = Math.max(light, ShaderCompatHelper.minShaderLight());
-        float fraction = light / MC.level.getMaxLightLevel();
+        float fraction = light / LightEngine.MAX_LEVEL;
         return new AtumColorImmutable(
                 Mth.floor(base.getRedInt() * fraction),
                 Mth.floor(base.getGreenInt() * fraction),
@@ -557,11 +557,21 @@ public class VRHandRenderer {
                         vrPlayer,
                         slim ? VRBodyRenderer.MODEL_NAME_SLIM : VRBodyRenderer.MODEL_NAME_DEFAULT
                 );
+        //? if >=1.21.2 {
         if (mainHand) {
+            bodyRenderer.renderRightHand(poseStack, buffer, packedLight, McRenderUtils.getSkinTexture(player),
+                    player.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE));
+        } else {
+            bodyRenderer.renderLeftHand(poseStack, buffer, packedLight, McRenderUtils.getSkinTexture(player),
+                    player.isModelPartShown(PlayerModelPart.LEFT_SLEEVE));
+        }
+        //?} else {
+        /*if (mainHand) {
             bodyRenderer.renderRightHand(poseStack, buffer, packedLight, player);
         } else {
             bodyRenderer.renderLeftHand(poseStack, buffer, packedLight, player);
         }
+        *///?}
         poseStack.popPose();
     }
 

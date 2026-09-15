@@ -5,8 +5,12 @@ import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
+//? if >=1.21.2 {
+import net.minecraft.client.renderer.LevelEventHandler;
+//?} else {
+/*import net.minecraft.client.renderer.LevelRenderer;
+*///?}
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,7 +19,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
-@Mixin(value = LevelRenderer.class, priority = 999)
+// 1.21.2 moved levelEvent out of LevelRenderer
+//? if >=1.21.2 {
+@Mixin(LevelEventHandler.class)
+//?} else {
+/*@Mixin(value = LevelRenderer.class, priority = 999)
+*///?}
 public abstract class LevelRendererHapticsMixin {
 
     // ---- Shadow fields ----

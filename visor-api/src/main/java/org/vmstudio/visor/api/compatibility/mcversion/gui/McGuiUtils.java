@@ -11,6 +11,10 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.resources.ResourceLocation;
+//? if >=1.21.2 {
+import net.minecraft.client.renderer.RenderType;
+//?}
 //? if >=1.21.9 {
 /*import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.input.CharacterEvent;
@@ -59,6 +63,31 @@ public class McGuiUtils {
         *///?} else {
         screen.setTooltipForNextRenderPass(tooltip, positioner, focused);
         //?}
+    }
+
+
+    // ------- TEXTURES -------
+
+    public static void blit(GuiGraphics guiGraphics, ResourceLocation texture,
+                            int x, int y, int width, int height,
+                            float u, float v, int uWidth, int vHeight,
+                            int textureWidth, int textureHeight) {
+        //? if >=1.21.2 {
+        guiGraphics.blit(RenderType::guiTextured, texture, x, y, u, v, width, height,
+                uWidth, vHeight, textureWidth, textureHeight);
+        //?} else {
+        /*guiGraphics.blit(texture, x, y, width, height, u, v, uWidth, vHeight, textureWidth, textureHeight);
+        *///?}
+    }
+
+    public static void blit(GuiGraphics guiGraphics, ResourceLocation texture,
+                            int x, int y, float u, float v,
+                            int width, int height, int textureWidth, int textureHeight) {
+        //? if >=1.21.2 {
+        guiGraphics.blit(RenderType::guiTextured, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        //?} else {
+        /*guiGraphics.blit(texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        *///?}
     }
 
 

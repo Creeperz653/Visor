@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render.decoration.decorators.mainmenu;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -10,7 +12,6 @@ import me.phoenixra.atumvr.api.misc.color.AtumColorImmutable;
 import me.phoenixra.atumvr.api.misc.color.AtumColorMutable;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
@@ -412,8 +413,8 @@ public final class VRMenuSky {
         currentScenePhase = sceneTimeToPhase(currentSceneTime);
 
         // --- Setup ---
-        RenderSystem.clear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        McRenderUtils.clear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
+        McShaders.use(McShaders.Core.POSITION_COLOR);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.depthMask(false);
         RenderSystem.disableDepthTest();
@@ -446,7 +447,7 @@ public final class VRMenuSky {
         Matrix4f pose = poseStack.last().pose();
 
         // --- Setup ---
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        McShaders.use(McShaders.Core.POSITION_COLOR);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -661,7 +662,7 @@ public final class VRMenuSky {
         scratchCenter.set(dir).mul(distance);
         billboardBasis(dir, scratchRight, scratchUp);
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        McShaders.use(McShaders.Core.POSITION_TEX);
         RenderSystem.setShaderTexture(0, texture);
         RenderSystem.setShaderColor(color.getRed(), color.getGreen(), color.getBlue(), visible);
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
@@ -685,7 +686,7 @@ public final class VRMenuSky {
             return;
         }
 
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        McShaders.use(McShaders.Core.POSITION_COLOR);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
 
@@ -851,7 +852,7 @@ public final class VRMenuSky {
         float fade = clamp01(Math.min(ageSec, UFO_LIFETIME - ageSec) / UFO_FADE_SEC);
         int chaseStep = (int) (ageSec * UFO_LIGHT_STEP_HZ) % UFO_LIGHT_GROUPS;
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        McShaders.use(McShaders.Core.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, GLOW_SPRITE);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
@@ -909,7 +910,7 @@ public final class VRMenuSky {
         float gleamPos = (float) (currentTimeSec * VISOR_GLEAM_SPEED) % (VISOR_TOTAL_COLS + VISOR_GLEAM_W * 2f) - VISOR_GLEAM_W;
         boolean asCloudDots = currentDay >= VISOR_DAY_THRESHOLD;
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        McShaders.use(McShaders.Core.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, GLOW_SPRITE);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         if (asCloudDots) {
@@ -1133,7 +1134,7 @@ public final class VRMenuSky {
 
         boolean showClouds = currentDay >= VISOR_DAY_THRESHOLD;
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        McShaders.use(McShaders.Core.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, GLOW_SPRITE);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         if (showClouds) {
@@ -1319,7 +1320,7 @@ public final class VRMenuSky {
                 alpha = alpha * alpha; // tighter core, softer halo
                 int alphaByte = (int) (alpha * 255f);
 
-                img.setPixelRGBA(x, y, (alphaByte << 24) | 0x00FFFFFF);
+                McRenderUtils.setPixelArgb(img, x, y, (alphaByte << 24) | 0x00FFFFFF);
             }
         }
         DynamicTexture tex = new DynamicTexture(img);

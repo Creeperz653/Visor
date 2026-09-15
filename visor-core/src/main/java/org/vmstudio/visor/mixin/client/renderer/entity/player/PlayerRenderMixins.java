@@ -6,6 +6,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.*;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -50,7 +51,7 @@ public class PlayerRenderMixins {
 
         @Inject(method = "getRenderer", at = @At("HEAD"), cancellable = true)
         private void visor$swapInVRBodyRenderer(
-                Entity entity, CallbackInfoReturnable<EntityRenderer<AbstractClientPlayer>> cir)
+                Entity entity, CallbackInfoReturnable<? super PlayerRenderer> cir)
         {
             if(ClientContext.visor == null) {
                 return;

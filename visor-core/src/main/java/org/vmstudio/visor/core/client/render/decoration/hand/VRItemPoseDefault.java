@@ -1,6 +1,7 @@
 package org.vmstudio.visor.core.client.render.decoration.hand;
 
 
+import org.vmstudio.visor.api.compatibility.mcversion.McUseAnim;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import org.vmstudio.visor.api.client.input.HapticFeedback;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -289,8 +290,8 @@ public class VRItemPoseDefault extends VRHandItemPose {
         TransformType transformType = TransformType.DEFAULT;
         Item item = itemStack.getItem();
 
-        if (itemStack.getUseAnimation() == UseAnim.EAT
-                || itemStack.getUseAnimation() == UseAnim.DRINK) {
+        if (McVersionUtils.useAnimation(itemStack) == McUseAnim.EAT
+                || McVersionUtils.useAnimation(itemStack) == McUseAnim.DRINK) {
             return TransformType.CONSUMABLE;
         }
 
@@ -333,7 +334,7 @@ public class VRItemPoseDefault extends VRHandItemPose {
         } else if (item instanceof BowItem) {
             transformType = TransformType.BOW;
 
-        } else if (itemStack.getUseAnimation() == UseAnim.TOOT_HORN) {
+        } else if (McVersionUtils.useAnimation(itemStack) == McUseAnim.TOOT_HORN) {
             transformType = TransformType.HORN;
         } else if (ItemClassifier.MACE.is(item)) {
             transformType = TransformType.MACE;

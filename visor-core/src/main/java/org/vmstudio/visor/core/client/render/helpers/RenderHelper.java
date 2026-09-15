@@ -1,13 +1,14 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import me.phoenixra.atumvr.api.misc.color.AtumColor;
 import org.vmstudio.visor.api.common.utils.VRMathUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -28,7 +29,7 @@ public class RenderHelper {
             return false;
         }
         BlockPos pos = BlockPos.containing(in.x(), in.y(), in.z());
-        return MC.level.getBlockState(pos).isSolidRender(MC.level, pos);
+        return McVersionUtils.isSolidRender(MC.level.getBlockState(pos), MC.level, pos);
     }
 
     public static void renderCuboid(McVertexBuilder bufferBuilder,
@@ -156,7 +157,7 @@ public class RenderHelper {
         };
 
         // --- Setup ---
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        McShaders.use(McShaders.Core.POSITION_TEX);
         RenderSystem.setShaderColor(r, g, b, a);
 
         // --- Render ---
@@ -212,7 +213,7 @@ public class RenderHelper {
         };
 
         // --- Setup ---
-        RenderSystem.setShader(GameRenderer::getRendertypeTextShader);
+        McShaders.use(McShaders.Core.RENDERTYPE_TEXT);
         MC.gameRenderer.lightTexture().turnOnLightLayer();
 
         // --- Render ---
@@ -254,7 +255,7 @@ public class RenderHelper {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     mPos.set(x, y, z);
-                    if (!level.getBlockState(mPos).isSolidRender(level, mPos)) {
+                    if (!McVersionUtils.isSolidRender(level.getBlockState(mPos), level, mPos)) {
                         continue;
                     }
                     double dx = Math.max(0.0, Math.max(x - origin.x, origin.x - (x + 1.0)));

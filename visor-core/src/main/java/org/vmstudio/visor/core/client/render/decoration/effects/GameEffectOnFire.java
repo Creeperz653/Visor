@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.render.decoration.effects;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -15,7 +16,6 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
 import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.resources.ResourceLocation;
@@ -73,7 +73,7 @@ public class GameEffectOnFire extends VRGameEffect {
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        McShaders.use(McShaders.Core.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, atlas);
 
         // --- Pose setup ---

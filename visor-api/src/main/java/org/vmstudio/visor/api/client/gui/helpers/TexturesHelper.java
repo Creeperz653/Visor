@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import me.phoenixra.atumvr.api.misc.color.AtumColor;
 import org.vmstudio.visor.api.client.gui.GuiTexture;
 import org.vmstudio.visor.api.common.utils.LoggerUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -73,8 +74,8 @@ public class TexturesHelper {
 
         NativeImage img = new NativeImage(NativeImage.Format.RGBA, 1, 1, true);
 
-        img.setPixelRGBA(0, 0,
-                (alpha << 24) | (blue << 16) | (green << 8) | red
+        McRenderUtils.setPixelArgb(img, 0, 0,
+                (alpha << 24) | (red << 16) | (green << 8) | blue
         );
 
         DynamicTexture tex = new DynamicTexture(img);

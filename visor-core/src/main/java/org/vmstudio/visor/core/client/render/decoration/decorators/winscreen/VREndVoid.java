@@ -1,12 +1,12 @@
 package org.vmstudio.visor.core.client.render.decoration.decorators.winscreen;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaderProgram;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.TheEndPortalRenderer;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -14,7 +14,6 @@ import org.lwjgl.opengl.GL11C;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.VRShaders;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
-import org.vmstudio.visor.core.client.render.shaders.VRShaderEndPortal;
 import org.vmstudio.visor.mixin.client.accessors.RenderSystemAccessor;
 
 
@@ -40,15 +39,15 @@ public final class VREndVoid {
 
 
     public static void render(PoseStack poseStack, float driftRad, float portalTicks) {
-        ShaderInstance shader = VRShaders.getEndPortal().getHandle();
+        McShaderProgram shader = VRShaders.getEndPortal().getHandle();
 
         float previousGameTime = RenderSystem.getShaderGameTime();
         RenderSystem.setShaderGameTime((long) portalTicks, portalTicks % 1.0f);
 
-        RenderSystem.setShader(() -> shader);
+        shader.use();
         //? if >=1.20.5 {
         // 1.20.5 deleted ShaderInstance's IViewRotMat
-        shader.safeGetUniform("IViewRotMat").set(new Matrix3f(
+        shader.uniform("IViewRotMat").set(new Matrix3f(
                 RenderPoseHelper.getViewRotation(VRRenderState.getRenderPass())).invert());
         //?}
         RenderSystem.setShaderTexture(0, TheEndPortalRenderer.END_SKY_LOCATION);
@@ -82,8 +81,8 @@ public final class VREndVoid {
         } finally {
             poseStack.popPose();
             //? if >=1.20.5 {
-            // per-eye value on a shared ShaderInstance, never leave it set
-            shader.safeGetUniform("IViewRotMat").set(new Matrix3f());
+            // per-eye value on a shared shader, never leave it set
+            shader.uniform("IViewRotMat").set(new Matrix3f());
             //?}
             RenderSystemAccessor.setShaderGameTime(previousGameTime);
             RenderSystem.depthFunc(GL11C.GL_LEQUAL);

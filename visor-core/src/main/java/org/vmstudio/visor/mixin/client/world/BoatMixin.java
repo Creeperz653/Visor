@@ -1,5 +1,6 @@
 package org.vmstudio.visor.mixin.client.world;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McPlayerInput;
 import com.llamalad7.mixinextras.sugar.Local;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.common.HandType;
@@ -9,7 +10,11 @@ import org.vmstudio.visor.core.client.tasks.types.movement.vehicle.TaskBoat;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.vehicle.Boat;
+//? if >=1.21.2 {
+import net.minecraft.world.entity.vehicle.AbstractBoat;
+//?} else {
+/*import net.minecraft.world.entity.vehicle.Boat;
+*///?}
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,7 +28,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 
-@Mixin(Boat.class)
+//? if >=1.21.2 {
+@Mixin(AbstractBoat.class)
+//?} else {
+/*@Mixin(Boat.class)
+*///?}
 public abstract class BoatMixin extends Entity {
 
     @Shadow
@@ -44,12 +53,12 @@ public abstract class BoatMixin extends Entity {
 
     @ModifyConstant(constant = @Constant(floatValue = 1F, ordinal = 0), method = "controlBoat()V")
     public float visor$analogTurnLeft(float vanillaStep) {
-        return visor$hasAnalogSteering() ? MC.player.input.leftImpulse : vanillaStep;
+        return visor$hasAnalogSteering() ? McPlayerInput.leftImpulse(MC.player) : vanillaStep;
     }
 
     @ModifyConstant(constant = @Constant(floatValue = 1F, ordinal = 1), method = "controlBoat()V")
     public float visor$analogTurnRight(float vanillaStep) {
-        return visor$hasAnalogSteering() ? -MC.player.input.leftImpulse : vanillaStep;
+        return visor$hasAnalogSteering() ? -McPlayerInput.leftImpulse(MC.player) : vanillaStep;
     }
 
     @Unique
@@ -58,8 +67,20 @@ public abstract class BoatMixin extends Entity {
     }
 
     //keep @Local without variable name, to search by type
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/vehicle/Boat;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", shift = At.Shift.BEFORE), method = "controlBoat", cancellable = true)
+    //? if >=1.21.2 {
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/vehicle/AbstractBoat;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", shift = At.Shift.BEFORE), method = "controlBoat", cancellable = true)
     public void visor$rowingInVR(CallbackInfo ci, @Local float forward) {
+        visor$applyRowing(ci, forward);
+    }
+    //?} else {
+    /*@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/vehicle/Boat;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V", shift = At.Shift.BEFORE), method = "controlBoat", cancellable = true)
+    public void visor$rowingInVR(CallbackInfo ci, @Local float forward) {
+        visor$applyRowing(ci, forward);
+    }
+    *///?}
+
+    @Unique
+    private void visor$applyRowing(CallbackInfo ci, float forward) {
         if (VisorState.get().isNotActive()) {
             return;
         }

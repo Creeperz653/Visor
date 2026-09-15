@@ -46,6 +46,7 @@
     "client.renderer.LevelRendererSwingDamageMixin",
     "client.renderer.PostChainMixin",
     "client.renderer.VRLightsMixins$ClientLevelMixin",
+    "client.renderer.WeatherMixin",
     "client.renderer.blaze3d.GlStateManagerMixin",
     "client.renderer.blaze3d.RenderSystemMixin",
     "client.renderer.blaze3d.RenderTargetMixin",

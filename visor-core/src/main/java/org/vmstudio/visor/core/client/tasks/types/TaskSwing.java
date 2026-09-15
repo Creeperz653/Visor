@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.tasks.types;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import org.vmstudio.visor.api.client.input.HapticFeedback;
 import lombok.Getter;
 import lombok.Setter;
@@ -497,10 +498,10 @@ public class TaskSwing extends VisorTask {
         final boolean isFarmItem = ItemClassifier.FARMING_TOOL.is(handItem);
         final boolean isFarmableBlock = isFarmItem &&
                 (BlockClassifier.FARMABLE_BLOCK.is(blockState.getBlock()) ||
-                        handItem.useOn(new UseOnContext(
+                        McVersionUtils.shouldSwing(handItem.useOn(new UseOnContext(
                                 player.level(), null, interactionHand,
                                 player.getItemInHand(interactionHand).copy(), blockHit
-                        )).shouldSwing());
+                        ))));
         if (isFarmableBlock) {
             MC.gameMode.useItemOn(player, interactionHand, blockHit);
         } else {

@@ -17,13 +17,18 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.PlayerModelPart;
+import net.minecraft.world.phys.Vec3;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.player.VRClientPlayers;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.player.model.CenteredArmsPlayerMesh;
 import org.vmstudio.visor.core.client.render.player.model.simple.VRPlayerModelSimple;
+//? if >=1.21.2 {
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+//?} else {
+/*import net.minecraft.world.entity.player.PlayerModelPart;
+*///?}
 
 public class VRPlayerRendererHandsOnly extends PlayerRenderer {
     private static final LayerDefinition VR_LAYER_DEFAULT = LayerDefinition.create(
@@ -34,18 +39,59 @@ public class VRPlayerRendererHandsOnly extends PlayerRenderer {
 
     public VRPlayerRendererHandsOnly(EntityRendererProvider.Context context, boolean slim) {
         super(context, slim);
-        this.model = new VRPlayerModelSimple<>(
+        this.model = new VRPlayerModelSimple(
                 slim ? VR_LAYER_SLIM.bakeRoot()
                         : VR_LAYER_DEFAULT.bakeRoot(),
                 slim
         );
     }
 
+    //? if >=1.21.2 {
     @Override
+    public PlayerRenderState createRenderState() {
+        return new VRPlayerRenderState();
+    }
+
+    @Override
+    public void extractRenderState(AbstractClientPlayer player, PlayerRenderState state, float partialTick) {
+        super.extractRenderState(player, state, partialTick);
+        VRPlayerRenderState.extract(state, player, partialTick);
+    }
+
+    @Override
+    public void render(PlayerRenderState state, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+        if (!(state instanceof VRPlayerRenderState vrState) || vrState.player == null) {
+            super.render(state, poseStack, buffer, packedLight);
+            return;
+        }
+        renderVR(vrState.player, vrState.partialTick, this.getRenderOffset(state),
+                poseStack, buffer, packedLight,
+                () -> super.render(state, poseStack, buffer, packedLight));
+    }
+    //?} else {
+    /*@Override
     public void render(
             AbstractClientPlayer player, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer,
             int packedLight)
     {
+        renderVR(player, partialTick, this.getRenderOffset(player, partialTick),
+                poseStack, buffer, packedLight,
+                () -> super.render(player, entityYaw, partialTick, poseStack, buffer, packedLight));
+    }
+
+    @Override
+    public void setModelProperties(AbstractClientPlayer player) {
+        super.setModelProperties(player);
+
+        if (this.model instanceof VRPlayerModelSimple vrModel) {
+            vrModel.applyVisibility(player);
+        }
+    }
+    *///?}
+
+    private void renderVR(AbstractClientPlayer player, float partialTick, Vec3 renderOffset,
+                          PoseStack poseStack, MultiBufferSource buffer, int packedLight,
+                          Runnable vanillaRender) {
         poseStack.pushPose();
 
         var vrPlayer = VRClientPlayers.getPlayer(player.getUUID());
@@ -62,92 +108,106 @@ public class VRPlayerRendererHandsOnly extends PlayerRenderer {
             poseStack.scale(scale, scale, scale);
         }
 
-        super.render(player, entityYaw, partialTick, poseStack, buffer, packedLight);
+        vanillaRender.run();
 
         poseStack.popPose();
 
         if (vrPlayer != null && VRRenderState.isSpectatedVRView(player)) {
            ClientContext.handRenderer.renderSpectatedHands(
-                    this, player, vrPlayer, poseStack, buffer, packedLight, partialTick);
+                    renderOffset, player, vrPlayer, poseStack, buffer, packedLight, partialTick);
         }
     }
 
 
+    //? if >=1.21.2 {
     @Override
-    public void setModelProperties(AbstractClientPlayer player) {
-        super.setModelProperties(player);
-
-        if (VRRenderState.isSpectatedVRView(player)) {
-            var model = this.getModel();
-            model.head.visible = false;
-            model.hat.visible = false;
-            model.body.visible = false;
-            model.jacket.visible = false;
-            model.leftArm.visible = false;
-            model.rightArm.visible = false;
-            model.leftSleeve.visible = false;
-            model.rightSleeve.visible = false;
-            model.leftLeg.visible = false;
-            model.rightLeg.visible = false;
-            model.leftPants.visible = false;
-            model.rightPants.visible = false;
+    protected void setupRotations(PlayerRenderState state, PoseStack poseStack, float bodyRot, float scale) {
+        if (VRRenderState.getPhase().isVRGui()) {
+            if (state.isFallFlying || state.isVisuallySwimming || state.isAutoSpinAttack) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - bodyRot));
+                return;
+            }
+        } else {
+            bodyRot = vrBodyYaw(VRPlayerRenderState.playerOf(state), bodyRot);
         }
+        super.setupRotations(state, poseStack, bodyRot, scale);
     }
-
-
-    //? if >=1.20.5 {
-    @Override
+    //?} elif >=1.20.5 {
+    /*@Override
     protected void setupRotations(
             AbstractClientPlayer player, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTick, float scale)
     {
-    //?} else {
-    /*@Override
-    protected void setupRotations(
-            AbstractClientPlayer player, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTick)
-    {
-    *///?}
         if (VRRenderState.getPhase().isVRGui()) {
             if (player.isFallFlying() || player.isVisuallySwimming() || player.isAutoSpinAttack()) {
                 poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - rotationYaw));
                 return;
             }
         } else {
-            var vrPlayer = VRClientPlayers.getPlayer(player.getUUID());
-            if (vrPlayer != null) {
-                rotationYaw = vrPlayer.getPoseData(PlayerPoseType.RENDER).getBodyYaw() * Mth.RAD_TO_DEG;
-            }
+            rotationYaw = vrBodyYaw(player, rotationYaw);
         }
-
-        //? if >=1.20.5 {
         super.setupRotations(player, poseStack, ageInTicks, rotationYaw, partialTick, scale);
-        //?} else {
-        /*super.setupRotations(player, poseStack, ageInTicks, rotationYaw, partialTick);
-        *///?}
+    }
+    *///?} else {
+    /*@Override
+    protected void setupRotations(
+            AbstractClientPlayer player, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTick)
+    {
+        if (VRRenderState.getPhase().isVRGui()) {
+            if (player.isFallFlying() || player.isVisuallySwimming() || player.isAutoSpinAttack()) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - rotationYaw));
+                return;
+            }
+        } else {
+            rotationYaw = vrBodyYaw(player, rotationYaw);
+        }
+        super.setupRotations(player, poseStack, ageInTicks, rotationYaw, partialTick);
+    }
+    *///?}
+
+    private static float vrBodyYaw(AbstractClientPlayer player, float vanillaYaw) {
+        var vrPlayer = player == null ? null : VRClientPlayers.getPlayer(player.getUUID());
+        if (vrPlayer == null) {
+            return vanillaYaw;
+        }
+        return vrPlayer.getPoseData(PlayerPoseType.RENDER).getBodyYaw() * Mth.RAD_TO_DEG;
     }
 
 
+    //? if >=1.21.2 {
+    @Override
+    public void renderRightHand(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation skin, boolean sleeveVisible) {
+        renderVRHand(poseStack, buffer, combinedLight, skin, sleeveVisible, ControllerType.RIGHT);
+    }
 
     @Override
+    public void renderLeftHand(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation skin, boolean sleeveVisible) {
+        renderVRHand(poseStack, buffer, combinedLight, skin, sleeveVisible, ControllerType.LEFT);
+    }
+    //?} else {
+    /*@Override
     public void renderRightHand(
             PoseStack poseStack, MultiBufferSource buffer, int combinedLight, AbstractClientPlayer player)
     {
-        renderVRHand(poseStack, buffer, combinedLight, player, ControllerType.RIGHT);
+        this.setModelProperties(player);
+        renderVRHand(poseStack, buffer, combinedLight, this.getTextureLocation(player),
+                player.isModelPartShown(PlayerModelPart.RIGHT_SLEEVE), ControllerType.RIGHT);
     }
 
     @Override
     public void renderLeftHand(
             PoseStack poseStack, MultiBufferSource buffer, int combinedLight, AbstractClientPlayer player)
     {
-        renderVRHand(poseStack, buffer, combinedLight, player, ControllerType.LEFT);
+        this.setModelProperties(player);
+        renderVRHand(poseStack, buffer, combinedLight, this.getTextureLocation(player),
+                player.isModelPartShown(PlayerModelPart.LEFT_SLEEVE), ControllerType.LEFT);
     }
+    *///?}
 
 
     private void renderVRHand(
             PoseStack poseStack, MultiBufferSource buffer, int combinedLight,
-            AbstractClientPlayer player, ControllerType side)
+            ResourceLocation skin, boolean sleeveVisible, ControllerType side)
     {
-        this.setModelProperties(player);
-
         boolean left = side == ControllerType.LEFT;
         ModelPart arm = left ? this.model.leftArm : this.model.rightArm;
         ModelPart sleeve = left ? this.model.leftSleeve : this.model.rightSleeve;
@@ -170,16 +230,21 @@ public class VRPlayerRendererHandsOnly extends PlayerRenderer {
         arm.zScale = 1F;
         arm.visible = true;
 
-        sleeve.copyFrom(arm);
-        PlayerModelPart sleevePart = left ? PlayerModelPart.LEFT_SLEEVE : PlayerModelPart.RIGHT_SLEEVE;
-        sleeve.visible = player.isModelPartShown(sleevePart);
-
-        ResourceLocation skin = this.getTextureLocation(player);
         var consumer = buffer.getBuffer(RenderType.entityTranslucent(skin));
+        //? if >=1.21.2 {
+        // the sleeve is a child of the arm since 1.21.2
+        sleeve.resetPose();
+        sleeve.visible = sleeveVisible;
+        McRenderUtils.renderModelPart(arm, poseStack, consumer, combinedLight,
+                OverlayTexture.NO_OVERLAY);
+        //?} else {
+        /*sleeve.copyFrom(arm);
+        sleeve.visible = sleeveVisible;
         McRenderUtils.renderModelPart(arm, poseStack, consumer, combinedLight,
                 OverlayTexture.NO_OVERLAY);
         McRenderUtils.renderModelPart(sleeve, poseStack, consumer, combinedLight,
                 OverlayTexture.NO_OVERLAY);
+        *///?}
 
         RenderSystem.disableBlend();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

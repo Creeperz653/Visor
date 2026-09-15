@@ -1,11 +1,11 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaderProgram;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.minecraft.client.renderer.ShaderInstance;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
@@ -15,7 +15,7 @@ public class RenderShaderHelper {
     }
 
 
-    public static void renderFullscreenQuad(ShaderInstance shader,
+    public static void renderFullscreenQuad(McShaderProgram shader,
                                             RenderTarget source
     ) {
         // --- Setup ---
@@ -27,7 +27,7 @@ public class RenderShaderHelper {
         shader.apply();
 
         // --- Render ---
-        renderFullscreenQuad(shader.getVertexFormat());
+        renderFullscreenQuad(shader.vertexFormat());
 
 
         // --- Restore ---

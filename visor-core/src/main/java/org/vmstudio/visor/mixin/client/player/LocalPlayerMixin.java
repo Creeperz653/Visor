@@ -6,6 +6,9 @@ import net.minecraft.util.Mth;
 import org.vmstudio.visor.api.client.input.HapticFeedback;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+//? if >=1.21.2 {
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+//?}
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.network.toserver.TeleportMovePayloadToServer;
@@ -365,10 +368,22 @@ public abstract class LocalPlayerMixin extends Common_PlayerMixin implements Loc
     }
 
 
-    @ModifyVariable(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z"), ordinal = 2, method = "sendPosition")
+    //? if >=1.21.2 {
+    @ModifyExpressionValue(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lengthSquared(DDD)D"), method = "sendPosition")
+    private double visor$directTeleport(double movedSquared) {
+        return visor$sendTeleportMove(false) ? Double.MAX_VALUE : movedSquared;
+    }
+    //?} else {
+    /*@ModifyVariable(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z"), ordinal = 2, method = "sendPosition")
     private boolean visor$directTeleport(boolean updateRotation) {
+        return visor$sendTeleportMove(updateRotation);
+    }
+    *///?}
+
+    @Unique
+    private boolean visor$sendTeleportMove(boolean moved) {
         if (this.visor$teleported) {
-            updateRotation = true;
+            moved = true;
             ClientNetworking.sendVRPacket(
                     new TeleportMovePayloadToServer(
                             (float) this.getX(),
@@ -377,19 +392,28 @@ public abstract class LocalPlayerMixin extends Common_PlayerMixin implements Loc
                     )
             );
         }
-        return updateRotation;
+        return moved;
     }
 
     /**
      * Skips the outgoing position packet on the tick a VR teleport happened,
      * so the server does not flag the jump as illegal movement.
      */
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "sendPosition", slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z")))
+    //? if >=1.21.2 {
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "sendPosition")
     public void visor$noPosPacketOnTeleport(ClientPacketListener instance, Packet<?> packet, Operation<Void> original) {
         if (!this.visor$teleported) {
             original.call(instance, packet);
         }
     }
+    //?} else {
+    /*@WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"), method = "sendPosition", slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isPassenger()Z")))
+    public void visor$noPosPacketOnTeleport(ClientPacketListener instance, Packet<?> packet, Operation<Void> original) {
+        if (!this.visor$teleported) {
+            original.call(instance, packet);
+        }
+    }
+    *///?}
 
 
     /* ************** *\

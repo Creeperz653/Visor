@@ -120,8 +120,13 @@ public class NeoForgeModLoader implements ModLoader {
 
     @Override
     public boolean enableRenderTargetStencil(@NotNull RenderTarget renderTarget) {
-        renderTarget.enableStencil();
+        //? if >=1.21.2 {
+        // NeoForge 21.2 dropped RenderTarget.enableStencil, RenderTargetMixin attaches the stencil like on Fabric
+        return false;
+        //?} else {
+        /*renderTarget.enableStencil();
         return true;
+        *///?}
     }
 
     @Override

@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -44,11 +45,27 @@ public abstract class Common_LivingEntityMixin extends Common_EntityMixin {
         }
     }
 
-    @WrapOperation(method = "hurt", at = @At(value = "INVOKE",
+    //? if >=1.21.2 {
+    @WrapOperation(method = "hurtServer", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))
     private void visor$vrHurtKnockbackDirection(LivingEntity instance, double strength, double x, double z,
                                                 Operation<Void> original,
                                                 @Local(argsOnly = true) DamageSource damageSource) {
+        visor$vrKnockback(instance, strength, x, z, original, damageSource);
+    }
+    //?} else {
+    /*@WrapOperation(method = "hurt", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))
+    private void visor$vrHurtKnockbackDirection(LivingEntity instance, double strength, double x, double z,
+                                                Operation<Void> original,
+                                                @Local(argsOnly = true) DamageSource damageSource) {
+        visor$vrKnockback(instance, strength, x, z, original, damageSource);
+    }
+    *///?}
+
+    @Unique
+    private static void visor$vrKnockback(LivingEntity instance, double strength, double x, double z,
+                                          Operation<Void> original, DamageSource damageSource) {
         Vec3 knockBack = CommonUtils.calcVRKnockback(damageSource.getEntity(), instance);
         if (knockBack != null) {
             x = knockBack.x;

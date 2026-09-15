@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.network;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.vmstudio.visor.api.ModLoader;
@@ -105,9 +106,7 @@ public class ClientNetworking {
         float yaw = (float) Math.toDegrees(Mth.atan2(-view.x, view.z));
 
         ((LocalPlayer) player).connection.send(
-                new ServerboundMovePlayerPacket.Rot(
-                        yaw, pitch, player.onGround()
-                )
+                McVersionClientUtils.rotationPacket(player, yaw, pitch)
         );
     }
 

@@ -1,5 +1,8 @@
 package org.vmstudio.visor.api.compatibility.mcversion.render;
 
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -10,12 +13,9 @@ import net.minecraft.client.gui.GuiGraphics;
 //?}
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
-
-import java.util.function.Supplier;
 
 /**
  * Cross-mc-version Utils for rendering methods
@@ -61,30 +61,60 @@ public class McRenderUtils {
         *///?}
     }
 
-    // ------- SHADERS -------
+    // ------- RENDER STATE -------
 
-    public static Supplier<ShaderInstance> positionTexColorNormalShader() {
-        //? if >=1.20.5 {
-        return GameRenderer::getRendertypeCloudsShader;
+    public static void clear(int mask) {
+        //? if >=1.21.2 {
+        RenderSystem.clear(mask);
         //?} else {
-        /*return GameRenderer::getPositionTexColorNormalShader;
+        /*RenderSystem.clear(mask, Minecraft.ON_OSX);
+        *///?}
+    }
+
+    public static void setShaderTexture(int unit, ResourceLocation texture) {
+        //? if <1.21.2 {
+        /*Minecraft.getInstance().getTextureManager().bindForSetup(texture);
+        *///?}
+        RenderSystem.setShaderTexture(unit, texture);
+    }
+
+    public static void updateDisplay(Window window) {
+        //? if >=1.21.2 {
+        window.updateDisplay(null);
+        //?} else {
+        /*window.updateDisplay();
+        *///?}
+    }
+
+    // ------- TEXTURES -------
+
+    public static void setPixelArgb(NativeImage image, int x, int y, int argb) {
+        //? if >=1.21.2 {
+        image.setPixel(x, y, argb);
+        //?} else {
+        /*int abgr = (argb & 0xFF00FF00) | ((argb >> 16) & 0xFF) | ((argb & 0xFF) << 16);
+        image.setPixelRGBA(x, y, abgr);
         *///?}
     }
 
     // ------- TIMING -------
 
     public static float deltaFrameTicks() {
-        //? if >=1.21 {
-        return Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
-        //?} else {
+        //? if >=1.21.2 {
+        return Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaTicks();
+        //?} elif >=1.21 {
+        /*return Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
+        *///?} else {
         /*return Minecraft.getInstance().getDeltaFrameTime();
         *///?}
     }
 
     public static float partialTick() {
-        //? if >=1.21 {
-        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
-        //?} else {
+        //? if >=1.21.2 {
+        return Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
+        //?} elif >=1.21 {
+        /*return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        *///?} else {
         /*return Minecraft.getInstance().getFrameTime();
         *///?}
     }
@@ -109,9 +139,11 @@ public class McRenderUtils {
                                   float partialTicks,
                                   long nanoTime,
                                   boolean renderLevel) {
-        //? if >=1.21 {
-        renderer.render(Minecraft.getInstance().getTimer(), renderLevel);
-        //?} else {
+        //? if >=1.21.2 {
+        renderer.render(Minecraft.getInstance().getDeltaTracker(), renderLevel);
+        //?} elif >=1.21 {
+        /*renderer.render(Minecraft.getInstance().getTimer(), renderLevel);
+        *///?} else {
         /*renderer.render(partialTicks, nanoTime, renderLevel);
         *///?}
     }

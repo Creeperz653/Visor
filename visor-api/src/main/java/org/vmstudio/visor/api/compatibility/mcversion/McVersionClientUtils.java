@@ -5,6 +5,8 @@ import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ProgressScreen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.player.Player;
 
 import net.minecraft.client.gui.screens.Screen;
@@ -16,6 +18,9 @@ import net.minecraft.client.gui.screens.GenericMessageScreen;
 *///?}
 //? if <1.21.9 {
 import net.minecraft.client.gui.screens.ReceivingLevelScreen;
+//?}
+//? if >=1.21.2 {
+import net.minecraft.util.profiling.Profiler;
 //?}
 
 /**
@@ -82,6 +87,36 @@ public class McVersionClientUtils {
         return player.blockInteractionRange();
         //?} else {
         /*return gameMode.getPickRange();
+        *///?}
+    }
+
+    // ------- NETWORK -------
+
+    public static ServerboundMovePlayerPacket.Rot rotationPacket(Player player, float yRot, float xRot) {
+        //? if >=1.21.2 {
+        return new ServerboundMovePlayerPacket.Rot(yRot, xRot, player.onGround(), player.horizontalCollision);
+        //?} else {
+        /*return new ServerboundMovePlayerPacket.Rot(yRot, xRot, player.onGround());
+        *///?}
+    }
+
+    // ------- THREADING -------
+
+    public static void schedule(Runnable task) {
+        //? if >=1.21.2 {
+        Minecraft.getInstance().schedule(task);
+        //?} else {
+        /*Minecraft.getInstance().tell(task);
+        *///?}
+    }
+
+    // ------- PROFILER -------
+
+    public static ProfilerFiller profiler() {
+        //? if >=1.21.2 {
+        return Profiler.get();
+        //?} else {
+        /*return Minecraft.getInstance().getProfiler();
         *///?}
     }
 }

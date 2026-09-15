@@ -83,7 +83,9 @@ accessible method net/minecraft/client/renderer/GameRenderer renderItemActivatio
 accessible field net/minecraft/client/model/PlayerModel slim Z
 
 # Used in: VRPlayerRendererFull, VRPlayerRendererHandsOnly
-extendable method net/minecraft/client/renderer/entity/player/PlayerRenderer setModelProperties (Lnet/minecraft/client/player/AbstractClientPlayer;)V
+#? if <1.21.2 {
+#extendable method net/minecraft/client/renderer/entity/player/PlayerRenderer setModelProperties (Lnet/minecraft/client/player/AbstractClientPlayer;)V
+#?}
 
 # Used in: GameRendererMixin, VRCameraEntityCache, VRRendererBase
 accessible field net/minecraft/world/entity/Entity eyeHeight F

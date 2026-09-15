@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.gui.screens.overlayoptions;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -17,7 +18,6 @@ import org.vmstudio.visor.api.client.gui.widgets.sets.ValueEditorInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
@@ -401,7 +401,7 @@ public class OptionsScreenRegion extends OptionsScreen<OverlayOptionsScreenRegio
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        McShaders.use(McShaders.Core.POSITION_TEX);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
         float uMax = (float) McRenderTarget.viewWidth(target) / (float) target.width;

@@ -7,7 +7,6 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
 import org.vmstudio.visor.api.client.player.VRClientPlayer;
 import org.vmstudio.visor.api.client.player.body.VRBody;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
@@ -17,10 +16,18 @@ import org.vmstudio.visor.core.client.player.VRClientPlayers;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.player.model.ArmPoseClamp;
 import org.vmstudio.visor.core.client.render.player.model.CenteredArmsPlayerMesh;
+//? if >=1.21.2 {
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+import org.vmstudio.visor.core.client.render.player.VRPlayerRenderState;
+//?}
 
 import java.util.UUID;
 
-public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> {
+//? if >=1.21.2 {
+public class VRPlayerModelSimple extends PlayerModel {
+//?} else {
+/*public class VRPlayerModelSimple extends PlayerModel<AbstractClientPlayer> {
+*///?}
 
     protected VRClientPlayer vrPlayer;
     protected float bodyYaw;
@@ -31,14 +38,32 @@ public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> 
         super(root, isSlim);
     }
 
+    //? if >=1.21.2 {
     @Override
-    public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void setupAnim(PlayerRenderState state) {
+        super.setupAnim(state);
+        AbstractClientPlayer player = VRPlayerRenderState.playerOf(state);
+        if (player == null) {
+            return;
+        }
+        applyVisibility(player);
+        animate(player, state.isFallFlying, state.isVisuallySwimming, state.xRot);
+    }
+    //?} else {
+    /*@Override
+    public void setupAnim(AbstractClientPlayer entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+        animate(entity, entity.isFallFlying(), entity.isVisuallySwimming(), headPitch);
+    }
+    *///?}
 
+    private void animate(AbstractClientPlayer entity, boolean fallFlying, boolean visuallySwimming, float headPitch) {
         if (VRRenderState.getPhase().isVRGui()) {
-            if (entity.isFallFlying() || entity.isVisuallySwimming()) {
+            if (fallFlying || visuallySwimming) {
                 this.head.xRot = headPitch * Mth.DEG_TO_RAD;
-                this.hat.copyFrom(this.head);
+                //? if <1.21.2 {
+                /*this.hat.copyFrom(this.head);
+                *///?}
             }
             return;
         }
@@ -55,8 +80,25 @@ public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> 
         animateThirdPersonVRModel(this, entity, vrPlayer);
     }
 
-    private static void animateThirdPersonVRModel(VRPlayerModelSimple<?> model,
-                                                  LivingEntity entity,
+    public void applyVisibility(AbstractClientPlayer player) {
+        if (VRRenderState.isSpectatedVRView(player)) {
+            this.head.visible = false;
+            this.hat.visible = false;
+            this.body.visible = false;
+            this.jacket.visible = false;
+            this.leftArm.visible = false;
+            this.rightArm.visible = false;
+            this.leftSleeve.visible = false;
+            this.rightSleeve.visible = false;
+            this.leftLeg.visible = false;
+            this.rightLeg.visible = false;
+            this.leftPants.visible = false;
+            this.rightPants.visible = false;
+        }
+    }
+
+    private static void animateThirdPersonVRModel(VRPlayerModelSimple model,
+                                                  AbstractClientPlayer player,
                                                   VRClientPlayer vrPlayer) {
         var poseRender = vrPlayer.getPoseData(PlayerPoseType.RENDER);
         VRBody vrBody = poseRender.getBody();
@@ -70,15 +112,15 @@ public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> 
         applyYawPitchToArm(model, playerId, offArm,  vrBody.getOffhand().getPose(),  bodyYaw);
         applyHmdHead(model, poseRender.getHmd(), bodyYaw);
 
-        if (entity instanceof AbstractClientPlayer player) {
-            float partialTicks = ClientContext.visor != null
-                    ? ClientContext.visor.getPartialTicks()
-                    : 1.0F;
-            applyVanillaSwingPose(model, player, partialTicks);
-        }
+        float partialTicks = ClientContext.visor != null
+                ? ClientContext.visor.getPartialTicks()
+                : 1.0F;
+        applyVanillaSwingPose(model, player, partialTicks);
 
-        model.leftSleeve.copyFrom(model.leftArm);
+        //? if <1.21.2 {
+        /*model.leftSleeve.copyFrom(model.leftArm);
         model.rightSleeve.copyFrom(model.rightArm);
+        *///?}
 
         model.vrPlayer = vrPlayer;
         model.mainArm = mainArm;
@@ -86,7 +128,7 @@ public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> 
         model.isMainPlayer = false;
     }
 
-    private static void applyYawPitchToArm(VRPlayerModelSimple<?> model,
+    private static void applyYawPitchToArm(VRPlayerModelSimple model,
                                            UUID playerId,
                                            HumanoidArm arm,
                                            VRPose handPose,
@@ -102,7 +144,7 @@ public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> 
         armPart.setRotation(-Mth.HALF_PI - frame.armPitch, frame.armYawDelta, 0.0F);
     }
 
-    private static void applyVanillaSwingPose(VRPlayerModelSimple<?> model,
+    private static void applyVanillaSwingPose(VRPlayerModelSimple model,
                                               AbstractClientPlayer player,
                                               float partialTicks) {
         InteractionHand swinging = player.swingingArm;
@@ -145,12 +187,14 @@ public class VRPlayerModelSimple<T extends LivingEntity> extends PlayerModel<T> 
         }
     }
 
-    private static void applyHmdHead(VRPlayerModelSimple<?> model,   // <-- Simple uses VRPlayerModelSimple<?>
+    private static void applyHmdHead(VRPlayerModelSimple model,
                                      VRPose hmd,
                                      float bodyYaw) {
         model.head.xRot = -hmd.getPitch();
         model.head.yRot = hmd.getYaw() - bodyYaw;
         model.head.zRot = 0.0F;
-        model.hat.copyFrom(model.head);
+        //? if <1.21.2 {
+        /*model.hat.copyFrom(model.head);
+        *///?}
     }
 }

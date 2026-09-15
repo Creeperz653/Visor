@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.player;
 
+import org.vmstudio.visor.api.compatibility.mcversion.McPlayerInput;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 
 import lombok.Getter;
@@ -407,7 +408,7 @@ public class VRLocalPlayerImpl implements VRLocalPlayer {
         }
 
         if (player.isSprinting()
-                && (player.input.jumping || MC.options.keyJump.isDown())
+                && (McPlayerInput.isJumping(player) || MC.options.keyJump.isDown())
                 || player.isFallFlying()
                 || player.isSwimming()
                 && player.zza > 0.0F) {

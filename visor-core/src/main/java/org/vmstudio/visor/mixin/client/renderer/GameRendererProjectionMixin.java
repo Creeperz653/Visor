@@ -1,12 +1,12 @@
 package org.vmstudio.visor.mixin.client.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.phoenixra.atumvr.api.enums.EyeType;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.api.client.settings.enums.MirrorMode;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McProjection;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
@@ -55,19 +55,37 @@ public abstract class GameRendererProjectionMixin implements GameRendererExtensi
     private float visor$farClipPlane = 128.0F;
 
     // ---- Shadow methods ----
+    //? if >=1.21.2 {
     @Shadow
+    public abstract Matrix4f getProjectionMatrix(float fov);
+    @Shadow
+    protected abstract float getFov(Camera mainCamera2, float partialTicks, boolean b);
+    //?} else {
+    /*@Shadow
     public abstract Matrix4f getProjectionMatrix(double fov);
     @Shadow
     protected abstract double getFov(Camera mainCamera2, float partialTicks, boolean b);
-    @Shadow
-    public abstract void resetProjectionMatrix(Matrix4f projectionMatrix);
+    *///?}
 
 
     /* ***************** *\
   //--------MIXINS--------\\
     \* ***************** */
 
-    @Inject(at = @At("HEAD"), method = "getFov(Lnet/minecraft/client/Camera;FZ)D", cancellable = true)
+    //? if >=1.21.2 {
+    @Inject(at = @At("HEAD"), method = "getFov(Lnet/minecraft/client/Camera;FZ)F", cancellable = true)
+    public void visor$fov(Camera camera, float f, boolean bl, CallbackInfoReturnable<Float> info) {
+        if (VisorState.get().isActive() && VRRenderState.getSceneType().isMainMenu()) {
+            info.setReturnValue(this.minecraft.options.fov().get().floatValue());
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "getProjectionMatrix(F)Lorg/joml/Matrix4f;", cancellable = true, require = 1)
+    public void visor$projection(float fov, CallbackInfoReturnable<Matrix4f> info) {
+        visor$applyVrProjection(fov, info);
+    }
+    //?} else {
+    /*@Inject(at = @At("HEAD"), method = "getFov(Lnet/minecraft/client/Camera;FZ)D", cancellable = true)
     public void visor$fov(Camera camera, float f, boolean bl, CallbackInfoReturnable<Double> info) {
         if (VisorState.get().isActive() && VRRenderState.getSceneType().isMainMenu()) {
             info.setReturnValue(Double.valueOf(this.minecraft.options.fov().get()));
@@ -75,7 +93,13 @@ public abstract class GameRendererProjectionMixin implements GameRendererExtensi
     }
 
     @Inject(at = @At("HEAD"), method = "getProjectionMatrix(D)Lorg/joml/Matrix4f;", cancellable = true, require = 1)
-    public void visor$projection(double d, CallbackInfoReturnable<Matrix4f> info) {
+    public void visor$projection(double fov, CallbackInfoReturnable<Matrix4f> info) {
+        visor$applyVrProjection(fov, info);
+    }
+    *///?}
+
+    @Unique
+    private void visor$applyVrProjection(double d, CallbackInfoReturnable<Matrix4f> info) {
         if (VisorState.get().isNotActive()) {
             return;
         }
@@ -145,13 +169,13 @@ public abstract class GameRendererProjectionMixin implements GameRendererExtensi
     @Inject(at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;viewport(IIII)V", remap = false, shift = Shift.AFTER), method = "render", require = 1)
     public void visor$matrix(CallbackInfo info) {
         if(VisorState.get().isNotActive()) return;
-        this.resetProjectionMatrix(
+        McProjection.setPerspective(
                 this.getProjectionMatrix(
                         minecraft.options.fov().get()
                 )
         );
         McModelViewStack.identity();
-        RenderSystem.applyModelViewMatrix();
+        McModelViewStack.apply();
     }
 
 
@@ -181,7 +205,7 @@ public abstract class GameRendererProjectionMixin implements GameRendererExtensi
     @Override
     @Unique
     public void visor$resetProjectionMatrix(float partialTicks) {
-        this.resetProjectionMatrix(this.getProjectionMatrix(this.getFov(this.mainCamera, partialTicks, true)));
+        McProjection.setPerspective(this.getProjectionMatrix(this.getFov(this.mainCamera, partialTicks, true)));
     }
 
     @Override

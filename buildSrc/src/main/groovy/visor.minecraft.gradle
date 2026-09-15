@@ -143,4 +143,13 @@ processResources {
             resourcePlaceholders.inject(line) { l, key, value -> l.replace('${' + key + '}', value.toString()) }
         }
     }
+
+    // 1.21.2 resolves shader stages by resource id
+    if (stonecutter.eval(minecraftVersion, ">=1.21.2")) {
+        filesMatching("assets/minecraft/shaders/core/vr_*.json") {
+            filter { String line ->
+                line.replaceAll(/"(vertex|fragment)": "(vr_[a-z_]+)"/, '"$1": "minecraft:core/$2"')
+            }
+        }
+    }
 }

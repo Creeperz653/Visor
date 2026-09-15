@@ -66,8 +66,20 @@ public class EndermanMixins {
             super(entityType, level);
         }
 
-        @Inject(at = @At("HEAD"), method = "isLookingAtMe(Lnet/minecraft/world/entity/player/Player;)Z", cancellable = true)
+        //? if >=1.21.2 {
+        @Inject(at = @At("HEAD"), method = "isBeingStaredBy(Lnet/minecraft/world/entity/player/Player;)Z", cancellable = true)
         public void visor$vrPlayerLookingAtMe(Player player, CallbackInfoReturnable<Boolean> cir) {
+            visor$vrStare(player, cir);
+        }
+        //?} else {
+        /*@Inject(at = @At("HEAD"), method = "isLookingAtMe(Lnet/minecraft/world/entity/player/Player;)Z", cancellable = true)
+        public void visor$vrPlayerLookingAtMe(Player player, CallbackInfoReturnable<Boolean> cir) {
+            visor$vrStare(player, cir);
+        }
+        *///?}
+
+        @Unique
+        private void visor$vrStare(Player player, CallbackInfoReturnable<Boolean> cir) {
             if (!(player instanceof ServerPlayer serverPlayer)) return;
             var vrPlayer = VisorAPI.server().getVRPlayer(serverPlayer);
             if (vrPlayer != null) {

@@ -1,10 +1,10 @@
 package org.vmstudio.visor.core.client.render.decoration.decorators.mainmenu;
 
+import org.vmstudio.visor.api.compatibility.mcversion.render.McShaders;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -45,8 +45,8 @@ public class VRMenuPanorama {
     public static void render(PoseStack poseStack) {
         McVertexBuilder bufferbuilder = McVertexBuilder.get();
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-        RenderSystem.clear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+        McShaders.use(McShaders.Core.POSITION_TEX_COLOR);
+        McRenderUtils.clear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
         RenderSystem.depthMask(true);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
