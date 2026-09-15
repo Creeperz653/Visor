@@ -2,6 +2,7 @@ package org.vmstudio.visor.core.client.provider;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -97,7 +98,7 @@ public class VisorScene implements AtumVRScene {
 
         profiler.push("VR mirror");
         VRRenderState.startVRMirrorPhase();
-        MC.mainRenderTarget.bindWrite(true);
+        McRenderTarget.bindWrite(McRenderTarget.mainTarget());
         MirrorHelper.drawMirror();
         profiler.pop();
         GLUtils.checkGLError("post mirror");
@@ -135,9 +136,9 @@ public class VisorScene implements AtumVRScene {
         }
 
         if (flag) {
-            RenderTarget rendertarget = MC.mainRenderTarget;
+            RenderTarget rendertarget = McRenderTarget.mainTarget();
 
-            MC.mainRenderTarget.unbindWrite();
+            McRenderTarget.unbindWrite(rendertarget);
             ClientUtils.takeScreenshot(rendertarget);
             MC.getWindow().updateDisplay();
             ClientContext.renderer.setAskedForScreenShot(false);
@@ -154,14 +155,14 @@ public class VisorScene implements AtumVRScene {
     ) {
         VRRenderState.startVRWorldPhase(renderPass);
 
-        if (MC.mainRenderTarget == null) {
+        if (McRenderTarget.mainTarget() == null) {
             LOGGER.warn("Visor: no render target for pass {}; requesting renderer reinit.", renderPass);
             VRRenderState.startVanillaPhase();
             ClientContext.renderer.prepareReinit("Missing target for pass " + renderPass);
             return;
         }
 
-        MC.mainRenderTarget.bindWrite(true);
+        McRenderTarget.bindWrite(McRenderTarget.mainTarget());
         RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
         RenderSystem.clear(16384, Minecraft.ON_OSX);
         RenderSystem.enableDepthTest();
@@ -185,7 +186,7 @@ public class VisorScene implements AtumVRScene {
         RenderStateHelper.drainExternalGLErrors("VR level render");
 
         if (ShaderCompatHelper.isShaderActive()) {
-            MC.mainRenderTarget.bindWrite(true);
+            McRenderTarget.bindWrite(McRenderTarget.mainTarget());
             McModelViewStack.push();
             McModelViewStack.identity();
             RenderSystem.applyModelViewMatrix();
@@ -196,17 +197,19 @@ public class VisorScene implements AtumVRScene {
 
         if (renderPass.isEye()) {
             if (renderPass == VRRenderPass.EYE_LEFT) {
-                ClientContext.renderer.getTextureLeftEye()
-                        .getRenderTarget().bindWrite(true);
+                McRenderTarget.bindWrite(
+                        ClientContext.renderer.getTextureLeftEye().getRenderTarget()
+                );
             } else {
-                ClientContext.renderer.getTextureRightEye()
-                        .getRenderTarget().bindWrite(true);
+                McRenderTarget.bindWrite(
+                        ClientContext.renderer.getTextureRightEye().getRenderTarget()
+                );
             }
 
             VRShaders.getPostProcess().finishEye(
                     renderPass == VRRenderPass.EYE_LEFT
                             ? EyeType.LEFT : EyeType.RIGHT,
-                    MC.mainRenderTarget,
+                    McRenderTarget.mainTarget(),
                     context.partialTicks()
             );
         }

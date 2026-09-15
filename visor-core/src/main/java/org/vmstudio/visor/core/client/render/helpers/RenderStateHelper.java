@@ -3,6 +3,7 @@ package org.vmstudio.visor.core.client.render.helpers;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.lwjgl.opengl.GL11C;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.VisorClientImpl;
 
 import java.util.HashSet;
@@ -29,8 +30,8 @@ public class RenderStateHelper {
     }
 
     public static void restoreAfterExternalRender(boolean keepStencilTest) {
-        if (MC != null && MC.mainRenderTarget != null) {
-            MC.mainRenderTarget.bindWrite(true);
+        if (MC != null && McRenderTarget.mainTarget() != null) {
+            McRenderTarget.bindWrite(McRenderTarget.mainTarget());
         }
 
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

@@ -2,6 +2,7 @@ package org.vmstudio.visor.core.client.render.helpers;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -132,7 +133,7 @@ public class RenderEffectsHelper {
 
 
     private static void writeHiddenAreaStencil(float[] mask) {
-        RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
+        RenderTarget target = McRenderTarget.mainTarget();
 
         RenderSystem.backupProjectionMatrix();
         McModelViewStack.push();
@@ -140,7 +141,7 @@ public class RenderEffectsHelper {
         try {
             beginStencilWrite();
             Matrix4f ortho = new Matrix4f()
-                    .setOrtho(0, target.viewWidth, 0, target.viewHeight, 0, MASK_FAR_PLANE);
+                    .setOrtho(0, McRenderTarget.viewWidth(target), 0, McRenderTarget.viewHeight(target), 0, MASK_FAR_PLANE);
             RenderSystem.setProjectionMatrix(ortho, VertexSorting.ORTHOGRAPHIC_Z);
             RenderSystem.applyModelViewMatrix();
 

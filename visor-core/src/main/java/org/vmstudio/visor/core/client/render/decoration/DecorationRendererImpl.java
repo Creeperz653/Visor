@@ -3,6 +3,7 @@ package org.vmstudio.visor.core.client.render.decoration;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import lombok.Getter;
@@ -314,7 +315,7 @@ public class DecorationRendererImpl implements VRDecorationRenderer {
         // a foreign AFTER_LEVEL listener can leave the default framebuffer bound
         // (RenderTarget.copyDepthFrom does), iris rebinds the eye target itself
         if (!ShaderCompatHelper.isShaderActive()) {
-            MC.mainRenderTarget.bindWrite(true);
+            McRenderTarget.bindWrite(McRenderTarget.mainTarget());
         }
 
         if(currentDecorator.isFullControl()){

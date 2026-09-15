@@ -10,6 +10,7 @@ import org.vmstudio.visor.api.client.events.render.RenderPhaseStartedVREvent;
 import org.vmstudio.visor.api.client.player.body.VRBodyType;
 import org.vmstudio.visor.api.client.render.VRSceneType;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.compatibility.immportals.ImmPortalsCompatHelper;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
@@ -59,7 +60,7 @@ public class VRRenderState {
         RenderPhase previous = phase;
         phase = RenderPhase.VANILLA;
         renderPass = VRRenderPass.NULL;
-        MC.mainRenderTarget = vanillaTarget;
+        McRenderTarget.setMainTarget(vanillaTarget);
         if (previous != phase) {
             VisorAPI.eventBus().callEvent(
                     new RenderPhaseStartedVREvent(
@@ -73,7 +74,7 @@ public class VRRenderState {
         RenderPhase previous = phase;
         phase = RenderPhase.VR_GUI;
         renderPass = VRRenderPass.GUI;
-        MC.mainRenderTarget = getTargetForPass(VRRenderPass.GUI);
+        McRenderTarget.setMainTarget(getTargetForPass(VRRenderPass.GUI));
         if (previous != phase) {
             VisorAPI.eventBus().callEvent(
                     new RenderPhaseStartedVREvent(
@@ -93,7 +94,7 @@ public class VRRenderState {
         RenderPhase previous = phase;
         phase = RenderPhase.VR_WORLD;
         VRRenderState.renderPass = renderPass;
-        MC.mainRenderTarget = getTargetForPass(renderPass);
+        McRenderTarget.setMainTarget(getTargetForPass(renderPass));
         if (previous != phase) {
             VisorAPI.eventBus().callEvent(
                     new RenderPhaseStartedVREvent(
@@ -107,7 +108,7 @@ public class VRRenderState {
         RenderPhase previous = phase;
         phase = RenderPhase.VR_MIRROR;
         renderPass = VRRenderPass.NULL;
-        MC.mainRenderTarget = ClientContext.renderer.mainTarget.getMirrorTarget();
+        McRenderTarget.setMainTarget(ClientContext.renderer.mainTarget.getMirrorTarget());
         if (previous != phase) {
             VisorAPI.eventBus().callEvent(new RenderPhaseStartedVREvent(previous, phase, renderPass));
         }

@@ -3,7 +3,7 @@ package org.vmstudio.visor.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.MainTarget;
-import com.mojang.blaze3d.pipeline.RenderTarget;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.render.VRRenderState;
@@ -23,8 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MinecraftLifecycleMixin {
 
     // ---- Shadow fields ----
-    @Shadow
-    public RenderTarget mainRenderTarget;
     @Shadow
     public LocalPlayer player;
 
@@ -49,7 +47,7 @@ public abstract class MinecraftLifecycleMixin {
      */
     @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;setOverlay(Lnet/minecraft/client/gui/screens/Overlay;)V"), method = "<init>", index = 0, require = 1)
     public Overlay visor$initRenderStageManager(Overlay overlay) {
-        VRRenderState.initVanillaTarget((MainTarget) this.mainRenderTarget);
+        VRRenderState.initVanillaTarget((MainTarget) McRenderTarget.mainTarget());
 
         return overlay;
     }

@@ -3,6 +3,7 @@ package org.vmstudio.visor.mixin.client.renderer.blaze3d;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Window;
 import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.extensions.client.WindowExtension;
@@ -16,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import org.vmstudio.visor.core.client.ClientContext;
-import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 @Mixin(Window.class)
 public abstract class WindowMixin implements WindowExtension {
@@ -52,7 +52,7 @@ public abstract class WindowMixin implements WindowExtension {
                 );
             } else {
                 cir.setReturnValue(
-                        MC.mainRenderTarget.viewWidth
+                        McRenderTarget.viewWidth(McRenderTarget.mainTarget())
                 );
             }
         }
@@ -73,7 +73,7 @@ public abstract class WindowMixin implements WindowExtension {
                 );
             } else {
                 cir.setReturnValue(
-                        MC.mainRenderTarget.viewHeight
+                        McRenderTarget.viewHeight(McRenderTarget.mainTarget())
                 );
             }
         }
@@ -141,13 +141,13 @@ public abstract class WindowMixin implements WindowExtension {
     @Unique
     private static int visor$overlayPixelWidth(VROverlayScreen overlay) {
         RenderTarget target = overlay.getRenderTarget();
-        return target != null ? target.viewWidth : overlay.getRequestedWidth();
+        return target != null ? McRenderTarget.viewWidth(target) : overlay.getRequestedWidth();
     }
 
     @Unique
     private static int visor$overlayPixelHeight(VROverlayScreen overlay) {
         RenderTarget target = overlay.getRenderTarget();
-        return target != null ? target.viewHeight : overlay.getRequestedHeight();
+        return target != null ? McRenderTarget.viewHeight(target) : overlay.getRequestedHeight();
     }
 
 

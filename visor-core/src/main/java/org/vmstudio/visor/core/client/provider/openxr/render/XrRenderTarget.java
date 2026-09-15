@@ -3,8 +3,8 @@ package org.vmstudio.visor.core.client.provider.openxr.render;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL30;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 public class XrRenderTarget extends RenderTarget {
 
@@ -14,7 +14,7 @@ public class XrRenderTarget extends RenderTarget {
 
         this.colorTextureId = colorId;
 
-        this.resize(width, height, Minecraft.ON_OSX);
+        McRenderTarget.resize(this, width, height);
 
     }
 

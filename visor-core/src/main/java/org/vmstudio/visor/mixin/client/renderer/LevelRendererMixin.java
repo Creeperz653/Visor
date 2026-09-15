@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
@@ -32,8 +33,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 // common mixin
 @Mixin(value = LevelRenderer.class, priority = 999)
@@ -151,14 +150,14 @@ public abstract class LevelRendererMixin implements LevelRendererExtension {
     @Inject(method = {"initOutline", "initTransparency"}, at = @At("HEAD"))
     private void visor$ensureVanillaPhase(CallbackInfo ci) {
         if (VisorState.get().isActive() && VRRenderState.getPhase().isNotVanilla()) {
-            this.visor$savedRenderTarget = MC.mainRenderTarget;
-            MC.mainRenderTarget = VRRenderState.getVanillaTarget();
+            this.visor$savedRenderTarget = McRenderTarget.mainTarget();
+            McRenderTarget.setMainTarget(VRRenderState.getVanillaTarget());
         }
     }
     @Inject(method = {"initOutline", "initTransparency"}, at = @At("TAIL"))
     private void visor$restoreAfterInit(CallbackInfo ci) {
         if (this.visor$savedRenderTarget != null) {
-            MC.mainRenderTarget = this.visor$savedRenderTarget;
+            McRenderTarget.setMainTarget(this.visor$savedRenderTarget);
             this.visor$savedRenderTarget = null;
         }
     }

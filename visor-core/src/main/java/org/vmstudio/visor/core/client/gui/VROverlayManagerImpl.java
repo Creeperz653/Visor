@@ -1,6 +1,7 @@
 package org.vmstudio.visor.core.client.gui;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -28,7 +29,6 @@ import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.RenderGuiHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderPoseHelper;
 import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
@@ -130,9 +130,9 @@ public class VROverlayManagerImpl implements VROverlayManager {
 
                 if(overlay instanceof VROverlayScreen overlayScreen) {
                     //apply clean render target
-                    MC.mainRenderTarget = target;
-                    target.clear(Minecraft.ON_OSX);
-                    target.bindWrite(true);
+                    McRenderTarget.setMainTarget(target);
+                    McRenderTarget.clear(target);
+                    McRenderTarget.bindWrite(target);
 
                     //setup projection if changed
                     if(prevOverlayWidth != overlayScreen.width

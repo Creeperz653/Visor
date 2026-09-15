@@ -1,6 +1,7 @@
 package org.vmstudio.visor.core.client.gui.screens.overlayoptions;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -387,7 +388,7 @@ public class OptionsScreenRegion extends OptionsScreen<OverlayOptionsScreenRegio
 
     private void drawFramebufferPreview(GuiGraphics gui) {
         RenderTarget target = optionsGroup.getTargetSupplier().get();
-        if (target == null || target.getColorTextureId() <= 0) {
+        if (target == null || McRenderTarget.colorTextureId(target) <= 0) {
             gui.fill(previewX, previewY, previewX + previewW, previewY + previewH, 0xFF202020);
             gui.renderOutline(previewX, previewY, previewW, previewH, 0x55FFFFFF);
             return;
@@ -395,7 +396,7 @@ public class OptionsScreenRegion extends OptionsScreen<OverlayOptionsScreenRegio
 
         gui.flush();
 
-        RenderSystem.setShaderTexture(0, target.getColorTextureId());
+        RenderSystem.setShaderTexture(0, McRenderTarget.colorTextureId(target));
 
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
@@ -403,8 +404,8 @@ public class OptionsScreenRegion extends OptionsScreen<OverlayOptionsScreenRegio
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
-        float uMax = (float) target.viewWidth / (float) target.width;
-        float vMax = (float) target.viewHeight / (float) target.height;
+        float uMax = (float) McRenderTarget.viewWidth(target) / (float) target.width;
+        float vMax = (float) McRenderTarget.viewHeight(target) / (float) target.height;
 
         Matrix4f pose = gui.pose().last().pose();
         McVertexBuilder buf = McVertexBuilder.get();

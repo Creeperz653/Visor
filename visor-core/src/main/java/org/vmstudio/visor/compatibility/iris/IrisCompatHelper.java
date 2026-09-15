@@ -2,9 +2,9 @@ package org.vmstudio.visor.compatibility.iris;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import me.phoenixra.atumvr.api.enums.EyeType;
-import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.vmstudio.visor.api.ModLoader;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.utils.LoggerUtils;
@@ -332,9 +332,8 @@ public final class IrisCompatHelper {
                     return;
                 }
 
-                Minecraft mc = Minecraft.getInstance();
-                RenderTarget previousMain = mc.mainRenderTarget;
-                mc.mainRenderTarget = eye;
+                RenderTarget previousMain = McRenderTarget.mainTarget();
+                McRenderTarget.setMainTarget(eye);
                 try {
                     destroyPipeline.invoke(pipelineManager);
                     Object dimension = getCurrentDimension.invoke(null);
@@ -343,7 +342,7 @@ public final class IrisCompatHelper {
                     LoggerUtils.getLogger().info(
                             "Visor: rebuilt the Iris pipeline against the eye target");
                 } finally {
-                    mc.mainRenderTarget = previousMain;
+                    McRenderTarget.setMainTarget(previousMain);
                 }
             } catch (Throwable t) {
                 LoggerUtils.printError(t);

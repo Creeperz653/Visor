@@ -1,9 +1,9 @@
 package org.vmstudio.visor.core.client.gui.overlays.templates;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.network.chat.Component;
 import org.vmstudio.visor.api.VisorAPI;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.api.client.gui.overlays.options.OptionTextures;
 import org.vmstudio.visor.api.client.gui.overlays.options.types.OverlayOptionsGeneral;
@@ -23,7 +23,6 @@ import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL30;
 import org.vmstudio.visor.core.client.gui.overlays.builtin.settings.VROverlaySettings;
 
 import java.util.List;
@@ -121,25 +120,18 @@ public class VROverlayHUD extends VROverlayTemplateFrameBuffer implements VREven
         // Lazily create/resize the region target
         if (regionTarget == null) {
             regionTarget = new RegionRenderTarget(false);
-            regionTarget.resize(rw, rh, true);
+            McRenderTarget.resize(regionTarget, rw, rh);
         } else if (regionTarget.width != rw || regionTarget.height != rh) {
-            regionTarget.resize(rw, rh, true);
+            McRenderTarget.resize(regionTarget, rw, rh);
         }
 
 
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, src.frameBufferId);
-        GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, regionTarget.frameBufferId);
-
         // Copy color only, nearest filtering
-        GlStateManager._glBlitFrameBuffer(
-                srcX0, srcY0, srcX1, srcY1,
-                0, 0, rw, rh,
-                GL30.GL_COLOR_BUFFER_BIT,
-                GL30.GL_NEAREST
+        McRenderTarget.blit(
+                src, srcX0, srcY0, srcX1, srcY1,
+                regionTarget, 0, 0, rw, rh,
+                false
         );
-
-        // Unbind
-        GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
         RenderStateHelper.restoreAfterExternalRender();
 
         // Use the cropped texture as the overlay render target

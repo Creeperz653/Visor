@@ -8,7 +8,7 @@ import org.vmstudio.visor.extensions.client.WindowExtension;
 import org.vmstudio.visor.extensions.client.render.RenderTargetExtension;
 import org.vmstudio.visor.core.client.render.target.RenderTargetHolder;
 import org.vmstudio.visor.core.client.render.target.VRRenderTarget;
-import net.minecraft.client.Minecraft;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
@@ -53,12 +53,12 @@ public class RenderTargetMain implements RenderTargetHolder {
         ((RenderTargetExtension) target).visor$setUseStencil(
                 true
         );
-        target.resize(width, height, Minecraft.ON_OSX);
+        McRenderTarget.resize(target, width, height);
         var mcWindow = (WindowExtension) (Object) MC.getWindow();
-        this.mirrorTarget.resize(
+        McRenderTarget.resize(
+                this.mirrorTarget,
                 Math.max(1, mcWindow.visor$mcScreenWidth()),
-                Math.max(1, mcWindow.visor$mcScreenHeight()),
-                Minecraft.ON_OSX
+                Math.max(1, mcWindow.visor$mcScreenHeight())
         );
 
     }

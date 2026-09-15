@@ -1,6 +1,7 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -22,7 +23,7 @@ public class RenderShaderHelper {
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableBlend();
-        shader.setSampler("Sampler0", source.getColorTextureId());
+        shader.setSampler("Sampler0", McRenderTarget.colorTextureId(source));
         shader.apply();
 
         // --- Render ---

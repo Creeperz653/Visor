@@ -3,7 +3,6 @@ package org.vmstudio.visor.compatibility.iris.mixin.coderbot;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.coderbot.iris.gl.buffer.ShaderStorageBufferHolder;
 import net.coderbot.iris.pipeline.WorldRenderingPipeline;
-import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -15,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
 import org.vmstudio.visor.compatibility.MixinGate;
 import org.vmstudio.visor.compatibility.iris.IrisCompatHelper;
@@ -111,11 +111,10 @@ public class PipelineManagerMixin implements IrisPipelineManagerExtension {
 
     @Unique
     private WorldRenderingPipeline visor$buildPassPipeline(Object dimension, VRRenderPass pass) {
-        Minecraft mc = Minecraft.getInstance();
-        RenderTarget previousMain = mc.mainRenderTarget;
+        RenderTarget previousMain = McRenderTarget.mainTarget();
         RenderTarget passTarget = VRRenderState.getTargetForPass(pass);
         if (passTarget != null) {
-            mc.mainRenderTarget = passTarget;
+            McRenderTarget.setMainTarget(passTarget);
         }
         IrisCompatHelper.buildingPass = pass;
         try {
@@ -130,7 +129,7 @@ public class PipelineManagerMixin implements IrisPipelineManagerExtension {
             return built;
         } finally {
             IrisCompatHelper.buildingPass = null;
-            mc.mainRenderTarget = previousMain;
+            McRenderTarget.setMainTarget(previousMain);
         }
     }
 

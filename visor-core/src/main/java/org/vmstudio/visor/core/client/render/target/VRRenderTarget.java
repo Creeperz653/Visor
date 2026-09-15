@@ -4,9 +4,9 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.Getter;
 import org.vmstudio.visor.api.ModLoader;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
 import org.vmstudio.visor.extensions.client.render.RenderTargetExtension;
-import net.minecraft.client.Minecraft;
 
 import java.util.function.Supplier;
 
@@ -33,13 +33,13 @@ public class VRRenderTarget extends RenderTarget {
 
         ((RenderTargetExtension) this).visor$setTextureId(textureSupplier.get());
         ((RenderTargetExtension) this).visor$setLinearFilter(linearFilter);
-        this.resize(width, height, Minecraft.ON_OSX);
+        McRenderTarget.resize(this, width, height);
         if (useStencil) {
             if(!ModLoader.get().enableRenderTargetStencil(this)){
                 ((RenderTargetExtension) this).visor$setUseStencil(true);
             }
         }
-        this.setClearColor(0, 0, 0, 0);
+        McRenderTarget.setClearColor(this, 0, 0, 0, 0);
 
         ShaderCompatHelper.bridge().onRenderTargetCreated(this);
     }

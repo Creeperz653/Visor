@@ -1,6 +1,7 @@
 package org.vmstudio.visor.core.client.render.helpers;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -17,11 +18,7 @@ import org.joml.Matrix4f;
 import java.util.List;
 
 import org.vmstudio.visor.core.client.ClientContext;
-import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL30C;
 
-import static com.mojang.blaze3d.platform.GlStateManager._glBindFramebuffer;
-import static com.mojang.blaze3d.platform.GlStateManager._glBlitFrameBuffer;
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class MirrorHelper {
@@ -140,7 +137,7 @@ public class MirrorHelper {
         blit(
                 rightEye,
                 screenWidth,0,
-                MC.mainRenderTarget.width, screenHeight
+                McRenderTarget.mainTarget().width, screenHeight
         );
 
     }
@@ -214,12 +211,10 @@ public class MirrorHelper {
     public static void blit(RenderTarget source,
                             int left, int top,
                             int right, int bottom) {
-        _glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, source.frameBufferId);
-        _glBlitFrameBuffer(
-                0, 0, source.width, source.height,
-                left, top, right, bottom,
-                GL11C.GL_COLOR_BUFFER_BIT, GL11C.GL_LINEAR);
-        _glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0);
+        McRenderTarget.blit(
+                source, 0, 0, source.width, source.height,
+                McRenderTarget.mainTarget(), left, top, right, bottom,
+                true);
         RenderStateHelper.restoreAfterExternalRender();
     }
 
@@ -228,9 +223,10 @@ public class MirrorHelper {
                                    int right, int bottom,
                                    float cropX, float cropY,
                                    boolean keepAspect) {
+        RenderTarget destination = McRenderTarget.mainTarget();
         if (keepAspect) {
-            float dstAspect = (float) MC.mainRenderTarget.width / (float) MC.mainRenderTarget.height;
-            float srcAspect = (float) source.viewWidth / (float) source.viewHeight;
+            float dstAspect = (float) destination.width / (float) destination.height;
+            float srcAspect = (float) McRenderTarget.viewWidth(source) / (float) McRenderTarget.viewHeight(source);
             if (dstAspect > srcAspect) {
                 float ratio = srcAspect / dstAspect;
                 cropY = 0.5F * (1F - ratio) + ratio * cropY;
@@ -245,12 +241,10 @@ public class MirrorHelper {
         int srcX1 = source.width - srcX0;
         int srcY1 = source.height - srcY0;
 
-        _glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, source.frameBufferId);
-        _glBlitFrameBuffer(
-                srcX0, srcY0, srcX1, srcY1,
-                left, top, right, bottom,
-                GL11C.GL_COLOR_BUFFER_BIT, GL11C.GL_LINEAR);
-        _glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0);
+        McRenderTarget.blit(
+                source, srcX0, srcY0, srcX1, srcY1,
+                destination, left, top, right, bottom,
+                true);
         RenderStateHelper.restoreAfterExternalRender();
     }
 

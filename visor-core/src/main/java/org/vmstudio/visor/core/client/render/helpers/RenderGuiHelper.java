@@ -2,6 +2,7 @@ package org.vmstudio.visor.core.client.render.helpers;
 
 import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -72,10 +73,10 @@ public class RenderGuiHelper {
 
         var renderTarget = overlay.getRenderTarget();
         assert renderTarget != null;
-        renderTarget.bindRead();
+        McRenderTarget.bindRead(renderTarget);
 
         RenderSystem.disableCull();
-        RenderSystem.setShaderTexture(0, renderTarget.getColorTextureId());
+        RenderSystem.setShaderTexture(0, McRenderTarget.colorTextureId(renderTarget));
 
         RenderSystem.enableBlend();
         if (VRRenderState.getSceneType().isWorld()) {

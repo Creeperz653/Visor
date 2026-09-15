@@ -8,6 +8,7 @@ import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.client.render.VRRenderer;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.render.context.RenderContext;
 import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
 import org.vmstudio.visor.compatibility.ShaderCompatHelper;
@@ -115,8 +116,8 @@ public abstract class VRRendererBase implements VRRenderer {
         RenderSystem.depthMask(true);
         RenderSystem.colorMask(true, true, true, true);
 
-        MC.mainRenderTarget.clear(Minecraft.ON_OSX);
-        MC.mainRenderTarget.bindWrite(true);
+        McRenderTarget.clear(McRenderTarget.mainTarget());
+        McRenderTarget.bindWrite(McRenderTarget.mainTarget());
 
         ((GameRendererExtension)MC.gameRenderer).visor$setVRGuiVisible(
                 renderLevel && MC.getEntityRenderDispatcher().camera != null
@@ -215,7 +216,7 @@ public abstract class VRRendererBase implements VRRenderer {
         updateProjection();
 
         try {
-            minecraft.mainRenderTarget = mainTarget.getTarget();
+            McRenderTarget.setMainTarget(mainTarget.getTarget());
 
             VRShaders.setup();
         } catch (Exception exception1) {

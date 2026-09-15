@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.*;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.extensions.client.WindowExtension;
 import org.vmstudio.visor.extensions.client.render.GameRendererExtension;
@@ -101,8 +102,8 @@ public class VRShaderMixedReality implements VRShader{
 
         // --- Textures ---
         var target = ClientContext.renderer.thirdPersonTarget.getTarget();
-        handle.setSampler("SamplerColor", target.getColorTextureId());
-        handle.setSampler("SamplerDepth", target.getDepthTextureId());
+        handle.setSampler("SamplerColor", McRenderTarget.colorTextureId(target));
+        handle.setSampler("SamplerDepth", McRenderTarget.depthTextureId(target));
 
 
         // --- Render ---
@@ -121,11 +122,12 @@ public class VRShaderMixedReality implements VRShader{
                     source = ClientContext.renderer.getTextureRightEye().getRenderTarget();
                 }
             }
+            RenderTarget mainTarget = McRenderTarget.mainTarget();
             MirrorHelper.blit(source,
-                    MC.mainRenderTarget.width / 2,
+                    mainTarget.width / 2,
                     0,
-                    MC.mainRenderTarget.width,
-                    MC.mainRenderTarget.height / 2
+                    mainTarget.width,
+                    mainTarget.height / 2
             );
         }
     }

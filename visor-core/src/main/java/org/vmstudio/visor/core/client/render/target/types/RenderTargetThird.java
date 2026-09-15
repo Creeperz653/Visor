@@ -6,7 +6,7 @@ import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.vmstudio.visor.core.client.VisorClientImpl;
 import org.vmstudio.visor.core.client.render.target.RenderTargetHolder;
 import org.vmstudio.visor.core.client.render.target.VRRenderTarget;
-import net.minecraft.client.Minecraft;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 
 //Third Person mirror
 public class RenderTargetThird implements RenderTargetHolder {
@@ -34,7 +34,7 @@ public class RenderTargetThird implements RenderTargetHolder {
     public void resize(int width, int height) throws Exception {
         if(width < 1 || height < 1) return;
         if (this.target != null) {
-            target.resize(width, height, Minecraft.ON_OSX);
+            McRenderTarget.resize(target, width, height);
         }
     }
 
