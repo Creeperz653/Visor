@@ -16,6 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.vmstudio.visor.core.common.CommonUtils;
 import org.vmstudio.visor.extensions.common.ServerPlayerExtension;
+//? if >=1.21.4 {
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
+import org.vmstudio.visor.api.VisorAPI;
+import org.vmstudio.visor.api.server.player.VRServerPlayer;
+//?}
 
 @Mixin(LivingEntity.class)
 public abstract class Common_LivingEntityMixin extends Common_EntityMixin {
@@ -62,6 +69,54 @@ public abstract class Common_LivingEntityMixin extends Common_EntityMixin {
         visor$vrKnockback(instance, strength, x, z, original, damageSource);
     }
     *///?}
+
+
+    //? if >=1.21.4 {
+    @Inject(method = "isLookingAtMe(Lnet/minecraft/world/entity/LivingEntity;DZZ[D)Z", at = @At("HEAD"), cancellable = true)
+    private void visor$vrLookingAtMe(LivingEntity observer, double tolerance, boolean scaleByDistance,
+                                     boolean visualShape, double[] yValues,
+                                     CallbackInfoReturnable<Boolean> cir) {
+        if (!(observer instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        VRServerPlayer vrPlayer = VisorAPI.server().getVRPlayer(serverPlayer);
+        if (vrPlayer == null) {
+            return;
+        }
+        LivingEntity self = (LivingEntity) (Object) this;
+        var hmd = vrPlayer.getPoseData().getHmd();
+        Vec3 eye = hmd.getPositionVec3();
+        Vec3 look = hmd.getDirectionVec3().normalize();
+        ClipContext.Block block = visualShape ? ClipContext.Block.VISUAL : ClipContext.Block.COLLIDER;
+
+        for (double y : yValues) {
+            Vec3 toSelf = new Vec3(self.getX() - eye.x, y - eye.y, self.getZ() - eye.z);
+            double distance = toSelf.length();
+            double dot = look.dot(toSelf.normalize());
+            if (dot > 1.0 - (scaleByDistance ? tolerance / distance : tolerance)
+                    && visor$hmdSees(self, serverPlayer, eye, y, block)) {
+                cir.setReturnValue(true);
+                return;
+            }
+        }
+        cir.setReturnValue(false);
+    }
+
+    @Unique
+    private static boolean visor$hmdSees(LivingEntity self, ServerPlayer viewer, Vec3 eye,
+                                         double targetY, ClipContext.Block block) {
+        if (viewer.level() != self.level()) {
+            return false;
+        }
+        Vec3 target = new Vec3(self.getX(), targetY, self.getZ());
+        if (target.distanceTo(eye) > 128.0) {
+            return false;
+        }
+        return self.level()
+                .clip(new ClipContext(eye, target, block, ClipContext.Fluid.NONE, viewer))
+                .getType() == HitResult.Type.MISS;
+    }
+    //?}
 
     @Unique
     private static void visor$vrKnockback(LivingEntity instance, double strength, double x, double z,

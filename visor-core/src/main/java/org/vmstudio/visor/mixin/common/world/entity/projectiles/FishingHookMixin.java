@@ -32,8 +32,9 @@ public abstract class FishingHookMixin extends Entity {
     @Unique
     private Vec3 visor$savedHandPos = null;
 
-    //? if >=1.21.2 {
-    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;IILnet/minecraft/world/item/ItemStack;)V", ordinal = 0)
+    // only 1.21.2 - 1.21.3 pass the rod stack to the hook, before and after that the ctor is (player, level, luck, lure)
+    //? if >=1.21.2 && <1.21.4 {
+    /*@ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;IILnet/minecraft/world/item/ItemStack;)V", ordinal = 0)
     private float visor$vrRotationX(float xRot, Player player) {
         return visor$handPitch(xRot, player);
     }
@@ -47,8 +48,8 @@ public abstract class FishingHookMixin extends Entity {
     private void visor$vrMoveTo(FishingHook instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original) {
         visor$moveToRodTip(instance, x, y, z, yRot, xRot, original);
     }
-    //?} else {
-    /*@ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V", ordinal = 0)
+    *///?} else {
+    @ModifyVariable(at = @At(value = "STORE"), method = "<init>(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;II)V", ordinal = 0)
     private float visor$vrRotationX(float xRot, Player player) {
         return visor$handPitch(xRot, player);
     }
@@ -62,7 +63,7 @@ public abstract class FishingHookMixin extends Entity {
     private void visor$vrMoveTo(FishingHook instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original) {
         visor$moveToRodTip(instance, x, y, z, yRot, xRot, original);
     }
-    *///?}
+    //?}
 
     @Unique
     private float visor$handPitch(float xRot, Player player) {

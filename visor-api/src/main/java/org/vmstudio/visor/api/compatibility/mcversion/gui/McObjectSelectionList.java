@@ -48,6 +48,14 @@ public abstract class McObjectSelectionList<E extends ObjectSelectionList.Entry<
     }
 
 
+    protected int scrollbarX() {
+        //? if >=1.21.4 {
+        return super.scrollBarX();
+        //?} else {
+        /*return super.getScrollbarPosition();
+        *///?}
+    }
+
     // 1.20.5 dropped the flag, the background moved to renderListBackground
     public void setRenderBackground(boolean render) {
         //? if <1.20.5 {
@@ -98,6 +106,18 @@ public abstract class McObjectSelectionList<E extends ObjectSelectionList.Entry<
     /*@Override
     public final void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         renderContents(guiGraphics, mouseX, mouseY, partialTick);
+    }
+    *///?}
+
+    //? if >=1.21.4 {
+    @Override
+    protected final int scrollBarX() {
+        return scrollbarX();
+    }
+    //?} else {
+    /*@Override
+    protected final int getScrollbarPosition() {
+        return scrollbarX();
     }
     *///?}
 

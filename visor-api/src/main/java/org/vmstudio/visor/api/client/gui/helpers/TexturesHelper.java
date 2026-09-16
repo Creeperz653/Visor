@@ -83,7 +83,7 @@ public class TexturesHelper {
         String name = String.format("visor_%02x%02x%02x%02x",
                 red, green, blue, alpha);
 
-        return Minecraft.getInstance().getTextureManager().register(name, tex);
+        return McRenderUtils.registerDynamicTexture(name, tex);
     }
 
     private static void warnIfCacheTooLarge() {

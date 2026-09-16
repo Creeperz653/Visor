@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,7 +28,6 @@ import org.vmstudio.visor.core.client.render.player.VRPlayerRenderState;
 //?} else {
 /*import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalFloatRef;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 *///?}
@@ -72,7 +72,8 @@ public abstract class CapeLayerMixin extends RenderLayer<PlayerRenderState, Play
         HumanoidModel<?> capeModel, PoseStack poseStack, VertexConsumer consumer, int packedLight, int packedOverlay,
         Operation<Void> original, @Local(argsOnly = true) PlayerRenderState state)
     {
-        VRClientPlayer vrPlayer = visor$vrPlayer(state);
+        AbstractClientPlayer player = VRPlayerRenderState.playerOf(state);
+        VRClientPlayer vrPlayer = player == null ? null : VRClientPlayers.getPlayer(player.getUUID());
         if (vrPlayer == null || !capeModel.body.hasChild("cape")) {
             original.call(capeModel, poseStack, consumer, packedLight, packedOverlay);
             return;
@@ -81,7 +82,8 @@ public abstract class CapeLayerMixin extends RenderLayer<PlayerRenderState, Play
         PlayerModel model = getParentModel();
         visor$placement.aim(model.body, true);
         float bodyPitch = visor$placement.pitch();
-        boolean armor = !state.chestItem.isEmpty();
+        // read the slot, not the render state: 1.21.4 renamed its chestItem field to chestEquipment
+        boolean armor = !player.getItemBySlot(EquipmentSlot.CHEST).isEmpty();
 
         visor$offset.set(0F, 0F, BackLayerPlacement.restingDepth(model.body));
         if (armor) {

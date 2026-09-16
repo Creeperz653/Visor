@@ -24,9 +24,23 @@ import org.vmstudio.visor.core.client.render.player.VRPlayerRenderState;
 @Mixin(value = PlayerItemInHandLayer.class, priority = 900)
 public class PlayerItemInHandLayerMixin {
 
-    // 1.21.2 added a bridge overload, the descriptor keeps the injectors on the real method
-    //? if >=1.21.2 {
-    @Inject(method = "renderArmWithItem(Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;Lnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"), cancellable = true)
+    //? if >=1.21.4 {
+    @Inject(method = "renderArmWithItem(Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;Lnet/minecraft/client/renderer/item/ItemStackRenderState;Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"), cancellable = true)
+    private void visor$noItemInGui(
+            CallbackInfo ci, @Local(argsOnly = true) PlayerRenderState state, @Local(argsOnly = true) HumanoidArm arm)
+    {
+        if (visor$hideItem(VRPlayerRenderState.playerOf(state), arm)) {
+            ci.cancel();
+        }
+    }
+
+    @ModifyExpressionValue(method = "renderArmWithItem(Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;Lnet/minecraft/client/renderer/item/ItemStackRenderState;Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;isEmpty()Z", ordinal = 1))
+    private boolean visor$noSpyglass(boolean isEmpty, @Local(argsOnly = true) PlayerRenderState state) {
+        var player = VRPlayerRenderState.playerOf(state);
+        return isEmpty || (player != null && VRRenderState.isSelfModelHandsRender(player));
+    }
+    //?} elif >=1.21.2 {
+    /*@Inject(method = "renderArmWithItem(Lnet/minecraft/client/renderer/entity/state/PlayerRenderState;Lnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"), cancellable = true)
     private void visor$noItemInGui(
             CallbackInfo ci, @Local(argsOnly = true) PlayerRenderState state, @Local(argsOnly = true) HumanoidArm arm)
     {
@@ -40,7 +54,7 @@ public class PlayerItemInHandLayerMixin {
         var player = VRPlayerRenderState.playerOf(state);
         return isSpyglass && (player == null || !VRRenderState.isSelfModelHandsRender(player));
     }
-    //?} else {
+    *///?} else {
     /*@Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
     private void visor$noItemInGui(
             CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) HumanoidArm arm)

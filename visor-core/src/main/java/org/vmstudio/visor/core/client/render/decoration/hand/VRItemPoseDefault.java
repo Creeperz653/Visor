@@ -9,8 +9,12 @@ import com.mojang.math.Axis;
 import net.minecraft.Util;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
+//? if >=1.21.4 {
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+//?} else {
+/*import net.minecraft.client.resources.model.BakedModel;
+*///?}
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.*;
@@ -106,7 +110,7 @@ public class VRItemPoseDefault extends VRHandItemPose {
         float roll = 0;
 
 
-        var transformType = getTransformType(itemStack, player, MC.getItemRenderer());
+        var transformType = getTransformType(itemStack, player);
         switch (transformType) {
             case BLOCK_ITEM, DEFAULT -> {
                 scale = 1.0f;
@@ -284,9 +288,12 @@ public class VRItemPoseDefault extends VRHandItemPose {
         rotation.mul(aimToGrip);
         return new PoseParams(preRotation, rotation, translateX, translateY, translateZ, scale);
     }
+    //? if >=1.21.4 {
+    private static final ItemStackRenderState ITEM_RENDER_STATE = new ItemStackRenderState();
+    //?}
+
     public static TransformType getTransformType(ItemStack itemStack,
-                                                 AbstractClientPlayer player,
-                                                 ItemRenderer itemRenderer) {
+                                                 AbstractClientPlayer player) {
         TransformType transformType = TransformType.DEFAULT;
         Item item = itemStack.getItem();
 
@@ -319,11 +326,20 @@ public class VRItemPoseDefault extends VRHandItemPose {
             if (block instanceof TorchBlock) {
                 transformType = TransformType.BLOCK_STICK;
             } else {
-                BakedModel model = itemRenderer.getModel(
+                //? if >=1.21.4 {
+                // updateForTopItem clears the reused state before filling it
+                ItemModelResolver resolver = MC.getItemModelResolver();
+                resolver.updateForTopItem(ITEM_RENDER_STATE, itemStack, ItemDisplayContext.GROUND,
+                        false, MC.level, MC.player, 0);
+                boolean gui3d = ITEM_RENDER_STATE.isGui3d();
+                //?} else {
+                /*BakedModel model = MC.getItemRenderer().getModel(
                         itemStack, MC.level, MC.player, 0
                 );
+                boolean gui3d = model.isGui3d();
+                *///?}
 
-                if (model.isGui3d()) {
+                if (gui3d) {
                     transformType = TransformType.BLOCK_3D;
                 } else {
                     transformType = TransformType.BLOCK_ITEM;

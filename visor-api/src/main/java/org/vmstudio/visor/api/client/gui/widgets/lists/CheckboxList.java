@@ -90,9 +90,9 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
         this.renderRows(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.disableScissor();
 
-        int scrollX = this.getScrollbarPosition();
+        int scrollX = this.scrollbarX();
 
-        int maxScroll = this.getMaxScroll();
+        int maxScroll = this.maxScroll();
         if (maxScroll > 0) {
             int trackTop = listTop() + this.paddingTop;
             int trackBottom = listBottom() - this.paddingTop;
@@ -102,7 +102,7 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
             thumbH = Mth.clamp(thumbH, 32, viewH - 8);
 
             int thumbY = trackTop
-                    + (int)(this.getScrollAmount() * (viewH - thumbH) / (float)maxScroll);
+                    + (int)(this.scrollValue() * (viewH - thumbH) / (float)maxScroll);
             var scrollBarTex = scrolling
                     ? widgetInfo.getTextureScrollBarActive()
                     : widgetInfo.getTextureScrollBar();
@@ -233,7 +233,7 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
     }
 
     public void scrollTo(@NotNull CheckboxEntry entry) {
-        int maxScroll = this.getMaxScroll();
+        int maxScroll = this.maxScroll();
         if (maxScroll <= 0) {
             return;
         }
@@ -251,9 +251,9 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
         int j = listLeft() + this.width / 2;
         int k = j - i;
         int l = j + i;
-        int m = Mth.floor(mouseY - (double)listTop()) - this.headerHeight + (int)this.getScrollAmount() - 4;
+        int m = Mth.floor(mouseY - (double)listTop()) - this.headerHeight + (int)this.scrollValue() - 4;
         int n = m / this.itemHeight;
-        var entry = mouseX < (double)this.getScrollbarPosition()
+        var entry = mouseX < (double)this.scrollbarX()
                 && mouseX >= (double)k
                 && mouseX <= (double)l && n >= 0
                 && m >= 0
@@ -270,8 +270,7 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
     }
 
     @Override
-    protected void updateScrollingState(double mouseX, double mouseY, int button) {
-        super.updateScrollingState(mouseX, mouseY, button);
+    protected void onScrollStateUpdated(double mouseX, double mouseY, int button) {
         if(scrolling){
             lastDragCall = System.currentTimeMillis();
         }
@@ -314,7 +313,7 @@ public class CheckboxList extends McSelectionList<CheckboxList.CheckboxEntry> {
 
     @Override
     public int getRowTop(int index) {
-        return listTop() + paddingTop - (int)this.getScrollAmount() + index * this.itemHeight + this.headerHeight;
+        return listTop() + paddingTop - (int)this.scrollValue() + index * this.itemHeight + this.headerHeight;
     }
 
     @Override

@@ -258,7 +258,7 @@ public class DropDownListWidget extends AbstractButton implements McGuiEventList
             }
         }
 
-        boolean buttonClicked = this.clicked(mouseX, mouseY);
+        boolean buttonClicked = this.isMouseOver(mouseX, mouseY);
         boolean dropdownClicked = expanded &&
                 (mouseX >= dropdownX && mouseX <= dropdownX + dropdownWidth &&
                         mouseY >= dropdownY && mouseY <= dropdownY + dropdownHeight);

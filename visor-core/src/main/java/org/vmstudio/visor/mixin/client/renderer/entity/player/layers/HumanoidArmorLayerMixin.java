@@ -22,15 +22,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(HumanoidArmorLayer.class)
 public class HumanoidArmorLayerMixin {
 
-    //? if >=1.21.2 {
+    // 1.21.4 renamed the armor fields of the render state to *Equipment
+    //? if >=1.21.4 {
     @ModifyExpressionValue(
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/HumanoidRenderState;headEquipment:Lnet/minecraft/world/item/ItemStack;")
+    )
+    private ItemStack visor$hideHeadArmorOnVRSelf(ItemStack headItem, @Local(argsOnly = true) HumanoidRenderState state) {
+        return visor$hidesPiece(VRPlayerRenderState.playerOf(state), EquipmentSlot.HEAD) ? ItemStack.EMPTY : headItem;
+    }
+    //?} elif >=1.21.2 {
+    /*@ModifyExpressionValue(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/HumanoidRenderState;headItem:Lnet/minecraft/world/item/ItemStack;")
     )
     private ItemStack visor$hideHeadArmorOnVRSelf(ItemStack headItem, @Local(argsOnly = true) HumanoidRenderState state) {
         return visor$hidesPiece(VRPlayerRenderState.playerOf(state), EquipmentSlot.HEAD) ? ItemStack.EMPTY : headItem;
     }
-    //?} else {
+    *///?} else {
     /*@Inject(
             method = "renderArmorPiece(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/model/HumanoidModel;)V",
             at = @At("HEAD"),

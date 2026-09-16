@@ -129,7 +129,7 @@ public class VRSettingsAddonsScreen extends McScreen {
         }
 
         @Override
-        protected int getScrollbarPosition() {
+        protected int scrollbarX() {
             return this.width - 6;
         }
 

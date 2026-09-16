@@ -187,8 +187,8 @@ public class TexturedSelectionList extends McSelectionList<TexturedSelectionList
         this.renderRows(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.disableScissor();
 
-        int scrollX = this.getScrollbarPosition();
-        int maxScroll = this.getMaxScroll();
+        int scrollX = this.scrollbarX();
+        int maxScroll = this.maxScroll();
         if (maxScroll > 0) {
             int trackTop = listTop() + this.paddingTop;
             int trackBottom = listBottom() - this.paddingTop;
@@ -198,7 +198,7 @@ public class TexturedSelectionList extends McSelectionList<TexturedSelectionList
             thumbH = Mth.clamp(thumbH, 32, viewH - 8);
 
             int thumbY = trackTop
-                    + (int) (this.getScrollAmount() * (viewH - thumbH) / (float) maxScroll);
+                    + (int) (this.scrollValue() * (viewH - thumbH) / (float) maxScroll);
 
             var scrollBarTex = scrolling
                     ? widgetInfo.getTextureScrollBarActive()
@@ -330,7 +330,7 @@ public class TexturedSelectionList extends McSelectionList<TexturedSelectionList
     }
 
     public void scrollTo(@NotNull TexturedEntry entry) {
-        int maxScroll = this.getMaxScroll();
+        int maxScroll = this.maxScroll();
         if (maxScroll <= 0) return;
 
         // Find which row contains this entry
@@ -399,8 +399,7 @@ public class TexturedSelectionList extends McSelectionList<TexturedSelectionList
     //Scrolling
 
     @Override
-    protected void updateScrollingState(double mouseX, double mouseY, int button) {
-        super.updateScrollingState(mouseX, mouseY, button);
+    protected void onScrollStateUpdated(double mouseX, double mouseY, int button) {
         if (scrolling) {
             lastDragCall = System.currentTimeMillis();
         }
@@ -441,7 +440,7 @@ public class TexturedSelectionList extends McSelectionList<TexturedSelectionList
 
     @Override
     public int getRowTop(int index) {
-        return listTop() + paddingTop - (int) this.getScrollAmount() + index * this.itemHeight + this.headerHeight;
+        return listTop() + paddingTop - (int) this.scrollValue() + index * this.itemHeight + this.headerHeight;
     }
 
     @Override

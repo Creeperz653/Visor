@@ -29,10 +29,13 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.player.VRClientPlayers;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.extensions.client.render.ItemInHandRendererExtension;
-//? if >=1.21.2 {
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+//? if >=1.21.4 {
+import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
 import org.vmstudio.visor.core.client.render.player.VRPlayerRenderState;
-//?} else {
+//?} elif >=1.21.2 {
+/*import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import org.vmstudio.visor.core.client.render.player.VRPlayerRenderState;
+*///?} else {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.model.PlayerModel;
 *///?}
@@ -58,8 +61,31 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
     }
     *///?}
 
-    //? if >=1.21.2 {
+    //? if >=1.21.4 {
     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ArmedModel;translateToHand(Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;)V", shift = At.Shift.AFTER))
+    private void visor$scaleItemWithModelArms(
+            CallbackInfo ci, @Local(argsOnly = true) ArmedEntityRenderState state, @Local(argsOnly = true) PoseStack poseStack)
+    {
+        visor$scaleItem(VRPlayerRenderState.playerOf(state), poseStack);
+    }
+
+    @Inject(method = "renderArmWithItem",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V"))
+    private void visor$applyItemHandPose(
+            CallbackInfo ci,
+            @Local(argsOnly = true) ArmedEntityRenderState state,
+            @Local(argsOnly = true) HumanoidArm arm,
+            @Local(argsOnly = true) PoseStack poseStack)
+    {
+        AbstractClientPlayer player = VRPlayerRenderState.playerOf(state);
+        if (player == null) {
+            return;
+        }
+        visor$applyHandPose(player, VRPlayerRenderState.heldItemForArm(player, arm), arm, poseStack);
+    }
+    //?} elif >=1.21.2 {
+    /*@Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ArmedModel;translateToHand(Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;)V", shift = At.Shift.AFTER))
     private void visor$scaleItemWithModelArms(
             CallbackInfo ci, @Local(argsOnly = true) LivingEntityRenderState state, @Local(argsOnly = true) PoseStack poseStack)
     {
@@ -78,7 +104,7 @@ public abstract class ItemInHandLayerMixin extends RenderLayer {
     {
         visor$applyHandPose(VRPlayerRenderState.playerOf(state), itemStack, arm, poseStack);
     }
-    //?} else {
+    *///?} else {
     /*@Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ArmedModel;translateToHand(Lnet/minecraft/world/entity/HumanoidArm;Lcom/mojang/blaze3d/vertex/PoseStack;)V", shift = At.Shift.AFTER))
     private void visor$scaleItemWithModelArms(
             CallbackInfo ci, @Local(argsOnly = true) LivingEntity entity, @Local(argsOnly = true) PoseStack poseStack)

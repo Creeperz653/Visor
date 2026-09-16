@@ -1324,7 +1324,7 @@ public final class VRMenuSky {
             }
         }
         DynamicTexture tex = new DynamicTexture(img);
-        GLOW_SPRITE = Minecraft.getInstance().getTextureManager().register("visor_glow", tex);
+        GLOW_SPRITE = McRenderUtils.registerDynamicTexture("visor_glow", tex);
     }
 
     // ---- VISOR SIGN

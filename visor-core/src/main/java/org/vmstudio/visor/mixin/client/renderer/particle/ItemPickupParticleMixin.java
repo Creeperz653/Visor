@@ -29,7 +29,13 @@ public class ItemPickupParticleMixin {
     @Unique
     private Vector3fc visor$playerPos;
 
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D", ordinal = 0), method = "render")
+    //? if >=1.21.4 {
+    private static final String RENDER = "renderCustom";
+    //?} else {
+    /*private static final String RENDER = "render";
+    *///?}
+
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D", ordinal = 0), method = RENDER)
     public double visor$vrPosX(double partialTick,
                               double oldValue,
                               double newValue, Operation<Double> original) {
@@ -44,7 +50,7 @@ public class ItemPickupParticleMixin {
         return original.call(partialTick, oldValue, newValue);
     }
 
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D", ordinal = 1), method = "render")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D", ordinal = 1), method = RENDER)
     public double visor$vrPosY(double partialTick,
                               double oldValue,
                               double newValue, Operation<Double> original) {
@@ -57,7 +63,7 @@ public class ItemPickupParticleMixin {
         return original.call(partialTick, oldValue, newValue);
     }
 
-    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D", ordinal = 2), method = "render")
+    @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;lerp(DDD)D", ordinal = 2), method = RENDER)
     public double visor$vrPosZ(double partialTick,
                               double oldValue,
                               double newValue, Operation<Double> original) {

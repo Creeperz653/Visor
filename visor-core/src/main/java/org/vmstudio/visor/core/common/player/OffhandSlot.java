@@ -35,10 +35,18 @@ public class OffhandSlot extends Slot {
 
     }
 
+    // 1.21.4 moved the empty-slot icons to the gui atlas: one sprite id instead of atlas + texture
+    //? if >=1.21.4 {
     @Override
+    public ResourceLocation getNoItemIcon() {
+        return InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD;
+    }
+    //?} else {
+    /*@Override
     public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
         return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
     }
+    *///?}
 
 
     //-----DISABLE SLOT

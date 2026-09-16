@@ -267,10 +267,14 @@ public class McVersionUtils {
     }
 
     public static int customModelData(ItemStack itemStack){
-        //? if >=1.20.5 {
+        //? if >=1.21.4 {
         CustomModelData data = itemStack.get(DataComponents.CUSTOM_MODEL_DATA);
+        Float value = data == null ? null : data.getFloat(0);
+        return value == null ? 0 : value.intValue();
+        //?} elif >=1.20.5 {
+        /*CustomModelData data = itemStack.get(DataComponents.CUSTOM_MODEL_DATA);
         return data == null ? 0 : data.value();
-        //?} else {
+        *///?} else {
         /*CompoundTag tag = itemStack.getTag();
         return tag == null ? 0 : tag.getInt("CustomModelData");
         *///?}

@@ -61,7 +61,30 @@ public abstract class McSelectionList<E extends McSelectionList.Entry<E>> extend
 
 
     protected int scrollbarX() {
-        return super.getScrollbarPosition();
+        //? if >=1.21.4 {
+        return super.scrollBarX();
+        //?} else {
+        /*return super.getScrollbarPosition();
+        *///?}
+    }
+
+    protected final double scrollValue() {
+        //? if >=1.21.4 {
+        return scrollAmount();
+        //?} else {
+        /*return getScrollAmount();
+        *///?}
+    }
+
+    protected final int maxScroll() {
+        //? if >=1.21.4 {
+        return maxScrollAmount();
+        //?} else {
+        /*return getMaxScroll();
+        *///?}
+    }
+
+    protected void onScrollStateUpdated(double mouseX, double mouseY, int button) {
     }
 
     protected boolean onMouseScrolled(double mouseX, double mouseY, double verticalAmount) {
@@ -173,10 +196,30 @@ public abstract class McSelectionList<E extends McSelectionList.Entry<E>> extend
     *///?}
 
 
+    //? if >=1.21.4 {
     @Override
+    protected final int scrollBarX() {
+        return scrollbarX();
+    }
+
+    @Override
+    public final boolean updateScrolling(double mouseX, double mouseY, int button) {
+        boolean scrollingNow = super.updateScrolling(mouseX, mouseY, button);
+        onScrollStateUpdated(mouseX, mouseY, button);
+        return scrollingNow;
+    }
+    //?} else {
+    /*@Override
     protected final int getScrollbarPosition() {
         return scrollbarX();
     }
+
+    @Override
+    protected final void updateScrollingState(double mouseX, double mouseY, int button) {
+        super.updateScrollingState(mouseX, mouseY, button);
+        onScrollStateUpdated(mouseX, mouseY, button);
+    }
+    *///?}
 
     //? if >=1.20.2 {
     @Override

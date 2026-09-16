@@ -13,9 +13,12 @@ import net.minecraft.client.gui.GuiGraphics;
 //?}
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Cross-mc-version Utils for rendering methods
@@ -87,6 +90,19 @@ public class McRenderUtils {
     }
 
     // ------- TEXTURES -------
+
+    private static final AtomicInteger DYNAMIC_TEXTURE_ID = new AtomicInteger();
+
+    public static ResourceLocation registerDynamicTexture(String name, DynamicTexture texture) {
+        //? if >=1.21.4 {
+        ResourceLocation id = McVersionUtils.newResourceLoc("visor",
+                "dynamic/" + name + "_" + DYNAMIC_TEXTURE_ID.incrementAndGet());
+        Minecraft.getInstance().getTextureManager().register(id, texture);
+        return id;
+        //?} else {
+        /*return Minecraft.getInstance().getTextureManager().register(name, texture);
+        *///?}
+    }
 
     public static void setPixelArgb(NativeImage image, int x, int y, int argb) {
         //? if >=1.21.2 {
