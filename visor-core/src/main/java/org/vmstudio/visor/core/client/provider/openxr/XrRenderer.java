@@ -288,8 +288,7 @@ public class XrRenderer extends VRRendererBase {
                     XrCompositionLayerPassthroughFB passthroughLayer = XrCompositionLayerPassthroughFB.calloc(stack)
                             .type$Default()
                             .next(0)
-                            .flags(0)
-                            .space(vrProvider.getSession().getXrAppSpace())
+                            .flags(XR10.XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT)
                             .layerHandle(vrProvider.getPassthroughLayerHandle());
 
                     // Passthrough underlay first, projection layer on top.

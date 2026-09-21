@@ -98,7 +98,7 @@ public class XrProvider extends XRProvider {
                     .type$Default()
                     .next(0)
                     .passthrough(passthroughHandle)
-                    .flags(0)
+                    .flags(FBPassthrough.XR_PASSTHROUGH_IS_RUNNING_AT_CREATION_BIT_FB)
                     .purpose(FBPassthrough.XR_PASSTHROUGH_LAYER_PURPOSE_RECONSTRUCTION_FB);
 
             var layerPointer = stack.callocPointer(1);
