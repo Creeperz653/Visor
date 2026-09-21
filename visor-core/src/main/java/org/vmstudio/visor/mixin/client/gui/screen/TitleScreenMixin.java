@@ -26,7 +26,7 @@ import java.util.List;
 @Mixin(TitleScreen.class)
 public abstract class TitleScreenMixin extends Screen {
 
-```
+
 @Unique 
 private DropDownListWidget visor$vrModeButton; 
 @Unique 
@@ -156,6 +156,5 @@ private void visor$addVRModeButton() {
     visor$playModeLast = currentMode; 
     this.addRenderableWidget(visor$vrModeButton); 
 } 
-```
 
 }

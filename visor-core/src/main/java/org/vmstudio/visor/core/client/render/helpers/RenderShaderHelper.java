@@ -19,7 +19,7 @@ public class RenderShaderHelper {
                                             RenderTarget source
     ) {
         // --- Setup ---
-        RenderSystem.colorMask(true, true, true, false);
+        RenderSystem.colorMask(true, true, true, true);
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableBlend();

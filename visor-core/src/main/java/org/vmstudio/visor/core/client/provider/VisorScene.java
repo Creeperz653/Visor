@@ -162,7 +162,7 @@ public class VisorScene implements AtumVRScene {
         }
 
         McRenderTarget.bindWrite(McRenderTarget.mainTarget());
-        RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
         McRenderUtils.clear(16384);
         RenderSystem.enableDepthTest();
 

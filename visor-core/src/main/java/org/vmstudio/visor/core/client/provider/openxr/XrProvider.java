@@ -6,7 +6,9 @@ import me.phoenixra.atumvr.core.XRProvider;
 import me.phoenixra.atumvr.core.XRState;
 import me.phoenixra.atumvr.core.enums.XRGraphicsApi;
 import me.phoenixra.atumvr.core.enums.XRSessionState;
+import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
+import org.vmstudio.visor.api.client.settings.enums.MainMenuSceneMode;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorClientImpl;
 import org.vmstudio.visor.core.client.provider.openxr.render.XrRenderer;
@@ -119,11 +121,25 @@ public class XrProvider extends XRProvider {
         }
     }
 
-    /**
+        /**
      * @return true if the passthrough layer is ready to be submitted each frame
      */
     public boolean isPassthroughActive() {
         return passthroughLayerHandle != null;
+    }
+
+    /**
+     * @return true if the passthrough underlay should actually be shown
+     * this frame. Separate from {@link #isPassthroughActive()} (which just
+     * means the feature is ready) — until proper board clipping exists
+     * (Phase 3), passthrough is restricted to the main menu with
+     * MainMenuSceneMode.PASSTHROUGH selected, so it doesn't leak through
+     * translucent world content (leaves, glass, water) during gameplay.
+     */
+    public boolean shouldShowPassthrough() {
+        return isPassthroughActive()
+                && VisorAPI.clientState().sceneType().isMainMenu()
+                && VRClientSettings.getMainMenuScene() == MainMenuSceneMode.PASSTHROUGH;
     }
 
     /**

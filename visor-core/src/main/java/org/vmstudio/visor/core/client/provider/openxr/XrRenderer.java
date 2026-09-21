@@ -270,11 +270,14 @@ public class XrRenderer extends VRRendererBase {
                 // unpremultiplied) so pixels cleared to alpha 0 show the
                 // passthrough layer through, and correct for Quest Link's
                 // inverted alpha convention.
-                boolean passthroughActive = vrProvider.isPassthroughActive();
-                long projectionFlags = XR10.XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT
-                        | XR10.XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT;
-                if (passthroughActive && vrProvider.isInvertedAlphaEnabled()) {
-                    projectionFlags |= EXTCompositionLayerInvertedAlpha.XR_COMPOSITION_LAYER_INVERTED_ALPHA_BIT_EXT;
+                boolean passthroughActive = vrProvider.shouldShowPassthrough();
+                long projectionFlags = 0;
+                if (passthroughActive) {
+                    projectionFlags |= XR10.XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT
+                            | XR10.XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT;
+                    if (vrProvider.isInvertedAlphaEnabled()) {
+                        projectionFlags |= EXTCompositionLayerInvertedAlpha.XR_COMPOSITION_LAYER_INVERTED_ALPHA_BIT_EXT;
+                    }
                 }
 
                 XrCompositionLayerProjection compositionLayerProjection = XrCompositionLayerProjection.calloc(stack)
