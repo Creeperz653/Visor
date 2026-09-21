@@ -26,147 +26,136 @@ import java.util.List;
 @Mixin(TitleScreen.class)
 public abstract class TitleScreenMixin extends Screen {
 
-    @Unique
-    private DropDownListWidget visor$vrModeButton;
-    @Unique
-    private VRPlayMode visor$playModeLast;
+```
+@Unique 
+private DropDownListWidget visor$vrModeButton; 
+@Unique 
+private VRPlayMode visor$playModeLast; 
 
-    protected TitleScreenMixin(Component component) {
-        super(component);
-    }
+protected TitleScreenMixin(Component component) { 
+    super(component); 
+} 
 
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void visor$onTick(CallbackInfo ci) {
-        if (visor$vrModeButton == null) return;
-        var currentPlayMode = VRClientSettings.getVrPlayMode();
-        if (visor$playModeLast != currentPlayMode) {
-            visor$vrModeButton.setSelectedIndex(currentPlayMode.ordinal(), false);
-            visor$playModeLast = currentPlayMode;
-        }
-    }
+@Inject(method = "tick", at = @At("TAIL")) 
+private void visor$onTick(CallbackInfo ci) { 
+    if (visor$vrModeButton == null) return; 
+    var currentPlayMode = VRClientSettings.getVrPlayMode(); 
+    if (visor$playModeLast != currentPlayMode) { 
+        visor$vrModeButton.setSelectedIndex(currentPlayMode.ordinal(), false); 
+        visor$playModeLast = currentPlayMode; 
+    } 
+} 
 
-    @Inject(at = @At("TAIL"), method = "render")
-    public void visor$renderVrInitFailedWarning(GuiGraphics gfx, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (!VisorState.isVrInitFailed()) {
-            return;
-        }
+@Inject(at = @At("TAIL"), method = "render") 
+public void visor$renderVrInitFailedWarning(GuiGraphics gfx, int mouseX, int mouseY, float partialTick, CallbackInfo ci) { 
+    if (!VisorState.isVrInitFailed()) { 
+        return; 
+    } 
 
-        Component msg = Component.translatable("visor.messages.vr_init_failed");
-        int padX = 6;
-        int padY = 2;
-        int boxW = font.width(msg) + padX * 2;
-        int boxH = font.lineHeight + padY * 2;
-        int x = (this.width - boxW) / 2;
-        int y = 2;
+    Component msg = Component.translatable("visor.messages.vr_init_failed"); 
+    int padX = 6; 
+    int padY = 2; 
+    int boxW = font.width(msg) + padX * 2; 
+    int boxH = font.lineHeight + padY * 2; 
+    int x = (this.width - boxW) / 2; 
+    int y = 2; 
 
-        gfx.fill(x - 1, y - 1, x + boxW + 1, y + boxH + 1, 0xFF5DD9FF);
-        gfx.fill(x, y, x + boxW, y + boxH, 0xE6050B14);
-        gfx.drawCenteredString(font, msg, this.width / 2, y + padY, 0xFFFFFFFF);
-    }
+    gfx.fill(x - 1, y - 1, x + boxW + 1, y + boxH + 1, 0xFF5DD9FF); 
+    gfx.fill(x, y, x + boxW, y + boxH, 0xE6050B14); 
+    gfx.drawCenteredString(font, msg, this.width / 2, y + padY, 0xFFFFFFFF); 
+} 
 
-    @Inject(method = "init", at = @At("TAIL"), order = 9999)
-    public void visor$initAddVRModeButton(CallbackInfo ci) {
-        visor$addVRModeButton();
-    }
-
-
-    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void visor$dropdownClickPriority(double mouseX, double mouseY, int button,
-                                             CallbackInfoReturnable<Boolean> cir) {
-        if (visor$vrModeButton != null
-                && visor$vrModeButton.isExpanded()
-                && visor$vrModeButton.mouseClicked(mouseX, mouseY, button)) {
-            cir.setReturnValue(true);
-        }
-    }
-
-    @Inject(at = @At("TAIL"), method = "render")
-    public void visor$renderToolTip(GuiGraphics guiGraphics, int i, int j, float f, CallbackInfo ci) {
-        if (VisorState.get() == VRStateMode.INITIALIZED
-                && VRClientSettings.getVrPlayMode().canPlayVR()) {
-            Component text = Component.translatable("visor.messages.vr_auto_switch");
-
-            final int minGuiWidth = 320;
-            final int sideMargin = 20;
-            final int wrapWidth = minGuiWidth - 2 * sideMargin;
-            final int boxOffset = 12;
-            final int topMargin = 5;
-
-            guiGraphics.renderTooltip(
-                    font,
-                    font.split(text, wrapWidth),
-                    this.width / 2 - wrapWidth / 2 - boxOffset,
-                    topMargin + boxOffset
-            );
-        }
-    }
-
-    @Inject(method = "renderBackground", at = @At("HEAD"), cancellable = true)
-    public void visor$noPassthroughBackground(
-            GuiGraphics guiGraphics,
-            int mouseX,
-            int mouseY,
-            float partialTick,
-            CallbackInfo ci
-    ) {
-        if (VisorState.get().isActive()
-                && VRClientSettings.getMainMenuScene() == MainMenuSceneMode.PASSTHROUGH) {
-            ci.cancel();
-        }
-    }
+@Inject(method = "init", at = @At("TAIL"), order = 9999) 
+public void visor$initAddVRModeButton(CallbackInfo ci) { 
+    visor$addVRModeButton(); 
+} 
 
 
-    //? if >=1.20.5 {
-    @Inject(method = "renderPanorama", at = @At("HEAD"), cancellable = true)
-    public void visor$noPanorama(CallbackInfo ci) {
-        if (VisorState.get().isActive()) {
-            ci.cancel();
-        }
-    }
-    //?} else {
-    /*@ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PanoramaRenderer;render(FF)V"), method = "render", index = 1)
-    public float visor$noPanorama(float alpha) {
-        return VisorState.get().isActive()
-                ? 0.0F
-                : alpha;
-    }
-    *///?}
+@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true) 
+private void visor$dropdownClickPriority(double mouseX, double mouseY, int button, 
+                                         CallbackInfoReturnable<Boolean> cir) { 
+    if (visor$vrModeButton != null 
+            && visor$vrModeButton.isExpanded() 
+            && visor$vrModeButton.mouseClicked(mouseX, mouseY, button)) { 
+        cir.setReturnValue(true); 
+    } 
+} 
 
-    @Unique
-    private void visor$addVRModeButton() {
-        VRPlayMode[] modes = VRPlayMode.values();
+@Inject(at = @At("TAIL"), method = "render") 
+public void visor$renderToolTip(GuiGraphics guiGraphics, int i, int j, float f, CallbackInfo ci) { 
+    if (VisorState.get() == VRStateMode.INITIALIZED 
+            && VRClientSettings.getVrPlayMode().canPlayVR()) { 
+        Component text = Component.translatable("visor.messages.vr_auto_switch"); 
 
-        List<Component> items = Arrays.stream(modes)
-                .map(mode -> (Component) Component.translatable(
-                        "visor.options.common.vr_play_mode",
-                        Component.translatable("visor.options.enums.VRPlayMode." + mode.name())
-                ))
-                .toList();
+        final int minGuiWidth = 320; 
+        final int sideMargin = 20; 
+        final int wrapWidth = minGuiWidth - 2 * sideMargin; 
+        final int boxOffset = 12; 
+        final int topMargin = 5; 
 
-        VRPlayMode currentMode = VRClientSettings.getVrPlayMode();
+        guiGraphics.renderTooltip( 
+                font, 
+                font.split(text, wrapWidth), 
+                this.width / 2 - wrapWidth / 2 - boxOffset, 
+                topMargin + boxOffset 
+        ); 
+    } 
+} 
 
-        final int menuButtonWidth = 200;
-        final int menuButtonHeight = 20;
-        final int firstRowY = 48;
-        final int rowSpacing = 24;
-        final int gap = 4;
 
-        visor$vrModeButton = DropDownListWidget.builder(items)
-                .pos(this.width / 2 + menuButtonWidth / 2 + gap,
-                        this.height / 4 + firstRowY + rowSpacing)
-                .size(76, menuButtonHeight)
-                .setVisibleItems(modes.length)
-                .setStartIndex(currentMode.ordinal())
-                .setMessage(Component.translatable("visor.options.common.vr_play_mode.tooltip"))
-                .setResponder(index -> {
-                    VRPlayMode mode = modes[index];
-                    VisorState.setVrPlayMode(mode);
-                    ClientContext.settingsManager.saveOptions();
-                    visor$playModeLast = mode;
-                })
-                .build();
+//? if >=1.20.5 { 
+@Inject(method = "renderPanorama", at = @At("HEAD"), cancellable = true) 
+public void visor$noPanorama(CallbackInfo ci) { 
+    if (VisorState.get().isActive()) { 
+        ci.cancel(); 
+    } 
+} 
+//?} else { 
+/*@ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PanoramaRenderer;render(FF)V"), method = "render", index = 1) 
+public float visor$noPanorama(float alpha) { 
+    return VisorState.get().isActive() 
+            ? 0.0F 
+            : alpha; 
+} 
+*///?} 
 
-        visor$playModeLast = currentMode;
-        this.addRenderableWidget(visor$vrModeButton);
-    }
+@Unique 
+private void visor$addVRModeButton() { 
+    VRPlayMode[] modes = VRPlayMode.values(); 
+
+    List<Component> items = Arrays.stream(modes) 
+            .map(mode -> (Component) Component.translatable( 
+                    "visor.options.common.vr_play_mode", 
+                    Component.translatable("visor.options.enums.VRPlayMode." + mode.name()) 
+            )) 
+            .toList(); 
+
+    VRPlayMode currentMode = VRClientSettings.getVrPlayMode(); 
+
+    final int menuButtonWidth = 200; 
+    final int menuButtonHeight = 20; 
+    final int firstRowY = 48; 
+    final int rowSpacing = 24; 
+    final int gap = 4; 
+
+    visor$vrModeButton = DropDownListWidget.builder(items) 
+            .pos(this.width / 2 + menuButtonWidth / 2 + gap, 
+                    this.height / 4 + firstRowY + rowSpacing) 
+            .size(76, menuButtonHeight) 
+            .setVisibleItems(modes.length) 
+            .setStartIndex(currentMode.ordinal()) 
+            .setMessage(Component.translatable("visor.options.common.vr_play_mode.tooltip")) 
+            .setResponder(index -> { 
+                VRPlayMode mode = modes[index]; 
+                VisorState.setVrPlayMode(mode); 
+                ClientContext.settingsManager.saveOptions(); 
+                visor$playModeLast = mode; 
+            }) 
+            .build(); 
+
+    visor$playModeLast = currentMode; 
+    this.addRenderableWidget(visor$vrModeButton); 
+} 
+```
+
 }
