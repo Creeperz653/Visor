@@ -265,13 +265,41 @@ public class XrRenderer extends VRRendererBase {
                     );
                 }
 
+                // Board/passthrough: when a passthrough underlay is active,
+                // mark the projection layer's alpha as meaningful (source alpha,
+                // unpremultiplied) so pixels cleared to alpha 0 show the
+                // passthrough layer through, and correct for Quest Link's
+                // inverted alpha convention.
+                boolean passthroughActive = vrProvider.isPassthroughActive();
+                long projectionFlags = XR10.XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT
+                        | XR10.XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT;
+                if (passthroughActive && vrProvider.isInvertedAlphaEnabled()) {
+                    projectionFlags |= EXTCompositionLayerInvertedAlpha.XR_COMPOSITION_LAYER_INVERTED_ALPHA_BIT_EXT;
+                }
+
                 XrCompositionLayerProjection compositionLayerProjection = XrCompositionLayerProjection.calloc(stack)
                         .type(XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION)
+                        .layerFlags(projectionFlags)
                         .space(vrProvider.getSession().getXrAppSpace())
                         .views(this.projectionLayerViews);
 
-                PointerBuffer layers = stack.callocPointer(1);
-                layers.put(compositionLayerProjection);
+                PointerBuffer layers;
+                if (passthroughActive) {
+                    XrCompositionLayerPassthroughFB passthroughLayer = XrCompositionLayerPassthroughFB.calloc(stack)
+                            .type$Default()
+                            .next(0)
+                            .flags(0)
+                            .space(vrProvider.getSession().getXrAppSpace())
+                            .layerHandle(vrProvider.getPassthroughLayerHandle());
+
+                    // Passthrough underlay first, projection layer on top.
+                    layers = stack.callocPointer(2);
+                    layers.put(passthroughLayer);
+                    layers.put(compositionLayerProjection);
+                } else {
+                    layers = stack.callocPointer(1);
+                    layers.put(compositionLayerProjection);
+                }
                 layers.flip();
 
                 frameEndInfo.layers(layers);

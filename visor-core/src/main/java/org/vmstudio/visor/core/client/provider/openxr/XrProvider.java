@@ -12,10 +12,25 @@ import org.vmstudio.visor.core.client.VisorClientImpl;
 import org.vmstudio.visor.core.client.provider.openxr.render.XrRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.openxr.EXTCompositionLayerInvertedAlpha;
+import org.lwjgl.openxr.FBPassthrough;
+import org.lwjgl.openxr.XrPassthroughCreateInfoFB;
+import org.lwjgl.openxr.XrPassthroughFB;
+import org.lwjgl.openxr.XrPassthroughLayerCreateInfoFB;
+import org.lwjgl.openxr.XrPassthroughLayerFB;
+import org.lwjgl.system.MemoryStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class XrProvider extends XRProvider {
+
+    /** Handle of the FB passthrough feature, null if the runtime doesn't support XR_FB_passthrough. */
+    private XrPassthroughFB passthroughHandle;
+    /** Handle of the reconstruction passthrough layer submitted as the underlay each frame. */
+    private XrPassthroughLayerFB passthroughLayerHandle;
 
     public XrProvider(@NotNull String appName, @NotNull AtumVRLogger logger) {
         super(appName, logger);
@@ -38,7 +53,97 @@ public class XrProvider extends XRProvider {
 
         ClientContext.settingsManager.loadOptions();
 
+        initPassthrough();
+
         VisorClientImpl.LOGGER.info("OpenXR initialized");
+    }
+
+    /**
+     * Creates the FB passthrough feature and a single reconstruction layer,
+     * used as a compositor underlay for the desk-board passthrough view.
+     * <p>
+     *     Does nothing if the runtime never actually enabled {@code XR_FB_passthrough}
+     *     (AtumVR silently drops unsupported extensions from
+     *     {@link #getXRAppExtensions()}, so this checks what actually got enabled).
+     * </p>
+     */
+    private void initPassthrough() {
+        if (!session.getInstance().isExtensionEnabled(
+                FBPassthrough.XR_FB_PASSTHROUGH_EXTENSION_NAME)) {
+            VisorClientImpl.LOGGER.info(
+                    "XR_FB_passthrough not enabled, skipping passthrough setup"
+            );
+            return;
+        }
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            var createInfo = XrPassthroughCreateInfoFB.calloc(stack)
+                    .type$Default()
+                    .next(0)
+                    .flags(0);
+
+            var passthroughPointer = stack.callocPointer(1);
+            checkXRError(
+                    FBPassthrough.xrCreatePassthroughFB(session.getHandle(), createInfo, passthroughPointer),
+                    "xrCreatePassthroughFB"
+            );
+            passthroughHandle = new XrPassthroughFB(passthroughPointer.get(0), session.getHandle());
+
+            checkXRError(
+                    FBPassthrough.xrPassthroughStartFB(passthroughHandle),
+                    "xrPassthroughStartFB"
+            );
+
+            var layerCreateInfo = XrPassthroughLayerCreateInfoFB.calloc(stack)
+                    .type$Default()
+                    .next(0)
+                    .passthrough(passthroughHandle)
+                    .flags(0)
+                    .purpose(FBPassthrough.XR_PASSTHROUGH_LAYER_PURPOSE_RECONSTRUCTION_FB);
+
+            var layerPointer = stack.callocPointer(1);
+            checkXRError(
+                    FBPassthrough.xrCreatePassthroughLayerFB(session.getHandle(), layerCreateInfo, layerPointer),
+                    "xrCreatePassthroughLayerFB"
+            );
+            passthroughLayerHandle = new XrPassthroughLayerFB(layerPointer.get(0), session.getHandle());
+
+            VisorClientImpl.LOGGER.info("FB passthrough layer created");
+        } catch (Throwable t) {
+            passthroughHandle = null;
+            passthroughLayerHandle = null;
+            VisorClientImpl.LOGGER.error(
+                    "Failed to set up FB passthrough, continuing without it: "
+                            + t.getClass().getSimpleName() + ": " + t.getMessage()
+            );
+        }
+    }
+
+    /**
+     * @return true if the passthrough layer is ready to be submitted each frame
+     */
+    public boolean isPassthroughActive() {
+        return passthroughLayerHandle != null;
+    }
+
+    /**
+     * @return the passthrough layer handle to submit at {@code xrEndFrame},
+     * or null if passthrough isn't active — check {@link #isPassthroughActive()} first
+     */
+    @Nullable
+    public XrPassthroughLayerFB getPassthroughLayerHandle() {
+        return passthroughLayerHandle;
+    }
+
+    /**
+     * @return true if the runtime actually enabled
+     * XR_EXT_composition_layer_inverted_alpha — only then is it valid
+     * to set XR_COMPOSITION_LAYER_INVERTED_ALPHA_BIT_EXT on a submitted layer.
+     */
+    public boolean isInvertedAlphaEnabled() {
+        return session.getInstance().isExtensionEnabled(
+                EXTCompositionLayerInvertedAlpha.XR_EXT_COMPOSITION_LAYER_INVERTED_ALPHA_EXTENSION_NAME
+        );
     }
 
     @Override
@@ -67,6 +172,23 @@ public class XrProvider extends XRProvider {
         return new XrRenderer(this);
     }
 
+    /**
+     * Requests {@code XR_FB_passthrough} (for the underlay layer itself) and
+     * {@code XR_EXT_composition_layer_inverted_alpha} (Quest Link inverts the
+     * alpha convention: 0 = opaque there) on top of AtumVR's defaults.
+     * <p>
+     *     Both are dropped automatically by AtumVR if the runtime doesn't
+     *     support them, so this is safe to call unconditionally.
+     * </p>
+     */
+    @Override
+    public @NotNull List<String> getXRAppExtensions() {
+        List<String> extensions = new ArrayList<>(super.getXRAppExtensions());
+        extensions.add(FBPassthrough.XR_FB_PASSTHROUGH_EXTENSION_NAME);
+        extensions.add(EXTCompositionLayerInvertedAlpha.XR_EXT_COMPOSITION_LAYER_INVERTED_ALPHA_EXTENSION_NAME);
+        return extensions;
+    }
+
     @Override
     public void onStateChanged(XRSessionState state) {
         if(state == XRSessionState.EXITING){
@@ -77,5 +199,26 @@ public class XrProvider extends XRProvider {
     @Override
     public @NotNull XrInputHandler getInputHandler() {
         return (XrInputHandler) super.getInputHandler();
+    }
+
+    @Override
+    public void destroy() {
+        if (passthroughLayerHandle != null) {
+            checkXRError(
+                    false,
+                    FBPassthrough.xrDestroyPassthroughLayerFB(passthroughLayerHandle),
+                    "xrDestroyPassthroughLayerFB", ""
+            );
+            passthroughLayerHandle = null;
+        }
+        if (passthroughHandle != null) {
+            checkXRError(
+                    false,
+                    FBPassthrough.xrDestroyPassthroughFB(passthroughHandle),
+                    "xrDestroyPassthroughFB", ""
+            );
+            passthroughHandle = null;
+        }
+        super.destroy();
     }
 }
