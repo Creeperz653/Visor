@@ -11,5 +11,10 @@ public enum MainMenuSceneMode {
     /**
      * Configurable skybox panorama images
      */
-    PANORAMA
+    PANORAMA,
+
+    /**
+     * No virtual background, allowing passthrough to show
+     */
+    PASSTHROUGH
 }

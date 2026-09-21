@@ -69,17 +69,19 @@ public class DecoratorMainMenu extends VRDecorator {
                 )
         );
 
-        boolean skyScene = VRClientSettings.getMainMenuScene() != MainMenuSceneMode.PANORAMA;
+        MainMenuSceneMode scene = VRClientSettings.getMainMenuScene();
 
-        if (skyScene) {
+        if (scene == MainMenuSceneMode.SKY) {
             VRMenuSky.renderFirst(poseStack);
-        } else {
+        } else if (scene == MainMenuSceneMode.PANORAMA) {
             VRMenuPanorama.render(poseStack);
         }
 
-        VRMenuFloor.render(poseStack);
+        if (scene != MainMenuSceneMode.PASSTHROUGH) {
+            VRMenuFloor.render(poseStack);
+        }
 
-        if (skyScene) {
+        if (scene == MainMenuSceneMode.SKY) {
             VRMenuSky.renderLast(poseStack);
         }
 

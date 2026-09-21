@@ -5,6 +5,7 @@ import org.vmstudio.visor.api.client.VRStateMode;
 import org.vmstudio.visor.api.client.gui.widgets.lists.DropDownListWidget;
 import org.vmstudio.visor.core.client.VisorState;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
+import org.vmstudio.visor.api.client.settings.enums.MainMenuSceneMode;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -97,6 +98,20 @@ public abstract class TitleScreenMixin extends Screen {
                     this.width / 2 - wrapWidth / 2 - boxOffset,
                     topMargin + boxOffset
             );
+        }
+    }
+
+    @Inject(method = "renderBackground", at = @At("HEAD"), cancellable = true)
+    public void visor$noPassthroughBackground(
+            GuiGraphics guiGraphics,
+            int mouseX,
+            int mouseY,
+            float partialTick,
+            CallbackInfo ci
+    ) {
+        if (VisorState.get().isActive()
+                && VRClientSettings.getMainMenuScene() == MainMenuSceneMode.PASSTHROUGH) {
+            ci.cancel();
         }
     }
 
