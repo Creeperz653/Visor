@@ -27,6 +27,7 @@ import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.utils.ClientUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
+import org.vmstudio.visor.core.client.render.helpers.BoardRenderHelper;
 import org.jetbrains.annotations.NotNull;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.*;
@@ -163,7 +164,7 @@ public class VisorScene implements AtumVRScene {
 
         McRenderTarget.bindWrite(McRenderTarget.mainTarget());
         RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
-        McRenderUtils.clear(16384);
+        McRenderUtils.clear(17408);
         RenderSystem.enableDepthTest();
 
         ShaderCompatHelper.bridge().beginEye(renderPass.getEyeOrLeft());
@@ -174,6 +175,8 @@ public class VisorScene implements AtumVRScene {
             RenderSystem.setShaderTexture(2, 0);
         }
 
+        boolean boardMasked = BoardRenderHelper.beginMask(renderPass);
+
         McRenderUtils.renderGame(
                 MC.gameRenderer,
                 context.partialTicks(),
@@ -183,6 +186,10 @@ public class VisorScene implements AtumVRScene {
         //render game is outside of VR control. many mods might interfere
         //so, we drain GL errors instead of crash
         RenderStateHelper.drainExternalGLErrors("VR level render");
+
+        if (boardMasked) {
+            BoardRenderHelper.endMask();
+        }
 
         if (ShaderCompatHelper.isShaderActive()) {
             McRenderTarget.bindWrite(McRenderTarget.mainTarget());

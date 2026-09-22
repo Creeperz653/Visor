@@ -15,6 +15,7 @@ import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderTarget;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorState;
+import org.vmstudio.visor.core.client.render.BoardMode;
 import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
 import org.vmstudio.visor.core.client.render.VRRenderState;
 import org.vmstudio.visor.core.client.render.helpers.CullFrustumHelper;
@@ -138,6 +139,13 @@ public abstract class LevelRendererMixin implements LevelRendererExtension {
     public void visor$maskHiddenArea(CallbackInfo info) {
         if (VRRenderState.getPhase().isNotVanilla()) {
             RenderEffectsHelper.maskHiddenArea();
+        }
+    }
+
+    @Inject(method = "renderSky", at = @At("HEAD"), cancellable = true)
+    private void visor$noSkyInBoardMode(CallbackInfo ci) {
+        if (BoardMode.isActive()) {
+            ci.cancel();
         }
     }
 

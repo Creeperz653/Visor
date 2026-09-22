@@ -136,9 +136,14 @@ public class XrProvider extends XRProvider {
      * MainMenuSceneMode.PASSTHROUGH selected, so it doesn't leak through
      * translucent world content (leaves, glass, water) during gameplay.
      */
-    public boolean shouldShowPassthrough() {
-        return isPassthroughActive()
-                && VisorAPI.clientState().sceneType().isMainMenu()
+        public boolean shouldShowPassthrough() {
+        if (!isPassthroughActive()) {
+            return false;
+        }
+        if (org.vmstudio.visor.core.client.render.BoardMode.isActive()) {
+            return true;
+        }
+        return VisorAPI.clientState().sceneType().isMainMenu()
                 && VRClientSettings.getMainMenuScene() == MainMenuSceneMode.PASSTHROUGH;
     }
 
